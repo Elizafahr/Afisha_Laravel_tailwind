@@ -1,0 +1,40 @@
+ .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.carousel-caption {
+    bottom: 20%;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+}
+
+
+
+/* Профиль пользователя */
+.sticky-top {
+    position: sticky;
+    top: 1rem;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Адаптивные колонки */
+@media (max-width: 768px) {
+    .profile-columns {
+        flex-direction: column;
+    }
+    .profile-sidebar {
+        width: 100%;
+        position: static;
+    }
+    .profile-content {
+        width: 100%;
+    }
+}
