@@ -1,7 +1,6 @@
 @extends('layouts.app')
 
 @section('content')
-
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -21,7 +20,7 @@
                             </div>
                         @endif
 
-<form method="POST" action="{{ route('bookings.bookSeats', $event) }}">
+                        <form method="POST" action="{{ route('bookings.store', $event) }}">
                             @csrf
 
                             <!-- Выбор типа билета -->
@@ -57,8 +56,7 @@
                                                     <div class="grid grid-cols-12 gap-1 mb-1">
                                                         <div class="col-header"></div>
                                                         @foreach (range(1, $seats->groupBy('number')->count()) as $col)
-                                                            <div class="text-center text-xs font-medium">{{ $col }}
-                                                            </div>
+                                                            <div class="text-center text-xs font-medium">{{ $col }}</div>
                                                         @endforeach
                                                     </div>
 
@@ -66,8 +64,7 @@
                                                     @foreach ($seats->groupBy('row') as $row => $rowSeats)
                                                         <div class="grid grid-cols-12 gap-1 mb-1">
                                                             <!-- Row label -->
-                                                            <div class="row-label text-center font-medium self-center">Ряд
-                                                                {{ $row }}</div>
+                                                            <div class="row-label text-center font-medium self-center">Ряд {{ $row }}</div>
 
                                                             <!-- Seats -->
                                                             @foreach ($rowSeats->sortBy('number') as $seat)
@@ -88,36 +85,33 @@
                                     </div>
                                 </div>
                             @else
-                                <!-- Выбор места -->
-                                @if ($seats->isNotEmpty())
-                                    <div class="mb-3">
-                                        <label for="seat_id" class="form-label">Выберите место</label>
-                                        <select class="form-select" id="seat_id" name="seat_id">
-                                            <option value="">Без места (общий вход)</option>
-                                            @foreach ($seats as $seat)
-                                                <option value="{{ $seat->id }}"
-                                                    data-multiplier="{{ $seat->price_multiplier }}">
-                                                    {{ $seat->zone }}, ряд {{ $seat->seat_row }}, место
-                                                    {{ $seat->seat_number }}
-                                                    (x{{ $seat->price_multiplier }})
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                @endif
+                              <!-- Выбор места -->
+                            @if ($seats->isNotEmpty())
+                                <div class="mb-3">
+                                    <label for="seat_id" class="form-label">Выберите место</label>
+                                    <select class="form-select" id="seat_id" name="seat_id">
+                                        <option value="">Без места (общий вход)</option>
+                                        @foreach ($seats as $seat)
+                                            <option value="{{ $seat->id }}" data-multiplier="{{ $seat->price_multiplier }}">
+                                                {{ $seat->zone }}, ряд {{ $seat->seat_row }}, место {{ $seat->seat_number }}
+                                                (x{{ $seat->price_multiplier }})
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            @endif
 
                             @endif
 
-                            <!-- Скрытое поле для хранения выбранных мест -->
-                            <input type="hidden" id="selected_seats" name="selected_seats" value="">
+                             <!-- Скрытое поле для хранения выбранных мест -->
+                                <input type="hidden" id="selected_seats" name="selected_seats" value="">
 
-                            <!-- Информация о выбранных местах -->
-                            <div class="mb-3">
-                                <h5>Выбранные места:</h5>
-                                <div id="selected-seats-list" class="mb-3"></div>
-                                <p>Общее количество: <span id="selected-seats-count">0</span></p>
-                                <input type="hidden" id="quantity" name="quantity" value="1">
-                            </div>
+                                <!-- Информация о выбранных местах -->
+                                <div class="mb-3">
+                                    <h5>Выбранные места:</h5>
+                                    <div id="selected-seats-list" class="mb-3"></div>
+                                    <p>Общее количество: <span id="selected-seats-count">0</span></p>
+                                </div>
 
                             <!-- Итоговая цена -->
                             <div class="mb-3">
@@ -135,7 +129,9 @@
             </div>
         </div>
     </div>
+
     <script>
+        // Динамический расчет цены
         document.addEventListener('DOMContentLoaded', function() {
             const eventPrice = {{ $event->price }};
             const quantityInput = document.getElementById('quantity');
@@ -146,15 +142,15 @@
             function calculateTotal() {
                 let price = eventPrice;
                 let multiplier = 1;
-                let quantity = parseInt(quantityInput?.value) || 1;
+                let quantity = parseInt(quantityInput.value) || 1;
 
                 // Если выбран тип билета, используем его цену
-                if (ticketSelect?.value) {
+                if (ticketSelect.value) {
                     const selectedOption = ticketSelect.options[ticketSelect.selectedIndex];
                     price = parseFloat(selectedOption.dataset.price);
                 }
                 // Иначе если выбрано место, применяем множитель
-                else if (seatSelect?.value) {
+                else if (seatSelect.value) {
                     const selectedOption = seatSelect.options[seatSelect.selectedIndex];
                     multiplier = parseFloat(selectedOption.dataset.multiplier);
                 }
@@ -163,9 +159,9 @@
                 totalPriceElement.textContent = total.toFixed(2);
             }
 
-            quantityInput?.addEventListener('change', calculateTotal);
-            ticketSelect?.addEventListener('change', calculateTotal);
-            seatSelect?.addEventListener('change', calculateTotal);
+            quantityInput.addEventListener('change', calculateTotal);
+            ticketSelect.addEventListener('change', calculateTotal);
+            seatSelect.addEventListener('change', calculateTotal);
         });
 
         let selectedSeats = [];
@@ -191,48 +187,12 @@
             updateSelectedSeats();
         }
 
-     function updateSelectedSeats() {
-    const seatsInput = document.getElementById('selected_seats');
-     seatsInput.value = JSON.stringify(selectedSeats.map(seat => ({
-        id: seat.id,
-        price: seat.price
-    })));
+        function updateSelectedSeats() {
+            const seatsInput = document.getElementById('selected_seats');
+            seatsInput.value = JSON.stringify(selectedSeats);
 
-
-
-    seatsInput.value = JSON.stringify(selectedSeats);
-
-    const selectedSeatsList = document.getElementById('selected-seats-list');
-    const totalPriceElement = document.getElementById('total-price');
-    const selectedSeatsCount = document.getElementById('selected-seats-count');
-    const ticketSelect = document.getElementById('ticket_id');
-    const quantityInput = document.getElementById('quantity');
-
-    // Обновляем список выбранных мест
-    selectedSeatsList.innerHTML = selectedSeats.map(seat =>
-        `<div>Место ${seat.id} - ${seat.price}₽</div>`
-    ).join('');
-
-    // Обновляем счетчик выбранных мест
-    const seatsCount = selectedSeats.length;
-    selectedSeatsCount.textContent = seatsCount;
-
-    // Устанавливаем количество билетов равным количеству выбранных мест
-    // Если мест не выбрано, оставляем 1 (для общих билетов)
-    quantityInput.value = seatsCount > 0 ? seatsCount : 1;
-
-    // Получаем базовую цену
-    let basePrice = {{ $event->price }};
-
-    // Если выбран тип билета, используем его цену
-    if (ticketSelect && ticketSelect.value) {
-        const selectedOption = ticketSelect.options[ticketSelect.selectedIndex];
-        basePrice = parseFloat(selectedOption.dataset.price);
-    }
-
-    // Рассчитываем итоговую цену
-    const totalPrice = basePrice * parseInt(quantityInput.value);
-    totalPriceElement.textContent = totalPrice.toFixed(2);
-}
+            const totalPrice = selectedSeats.reduce((sum, seat) => sum + seat.price, 0);
+            document.getElementById('total_price').textContent = totalPrice;
+        }
     </script>
 @endsection

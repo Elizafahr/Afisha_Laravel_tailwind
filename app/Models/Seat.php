@@ -4,20 +4,19 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 
 class Seat extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
     protected $primaryKey = 'seat_id';
 
     protected $fillable = [
-        'event_id',
-        'seat_number',
-        'zone',
-        'seat_row',
-        'is_reserved',
-        'price_multiplier'
+     'event_id', 'zone', 'row', 'number',
+    'price', 'is_vip', 'is_reserved', 'booking_id'
     ];
 
     protected $casts = [

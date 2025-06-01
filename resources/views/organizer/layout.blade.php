@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Панель организатора - @yield('title')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+ <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+
     @stack('styles')
 </head>
 <body>
@@ -25,9 +34,9 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ route('organizer.bookings') }}">Бронирования</a>
                     </li>
-                    <li class="nav-item">
+                    {{-- <li class="nav-item">
                         <a class="nav-link" href="{{ route('organizer.reviews') }}">Отзывы</a>
-                    </li>
+                    </li> --}}
                 </ul>
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
@@ -35,7 +44,7 @@
                             {{ auth()->user()->username }}
                         </a>
                         <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Профиль</a></li>
+                            {{-- <li><a class="dropdown-item" href="{{ route('profile.edit') }}">Профиль</a></li> --}}
                             <li><hr class="dropdown-divider"></li>
                             <li>
                                 <form method="POST" action="{{ route('logout') }}">
@@ -51,7 +60,7 @@
     </nav>
 
     <div class="container py-4">
-        @include('layouts.alerts')
+        {{-- @include('layouts.alerts') --}}
         @yield('content')
     </div>
 

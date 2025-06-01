@@ -71,10 +71,10 @@
                     Активные бронирования ({{ $activeBookings->count() }})
                 </h2>
 
-                
+
             </div>
 
-            <!-- Прошедшие бронирования -->
+            <!-- Прошедшие бронирования
             <div class="bg-white rounded-lg shadow-md p-6">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
                     <svg class="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -83,8 +83,8 @@
                     Прошедшие события ({{ $pastBookings->count() }})
                 </h2>
 
-             
-            </div>
+
+            </div>-->
 
             <!-- Отзывы -->
             <!-- <div class="bg-white rounded-lg shadow-md p-6">

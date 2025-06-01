@@ -45,7 +45,7 @@
                         <th>Место</th>
                         <th>Бронирований</th>
                         <th>Статус</th>
-                        <th>Действия</th>
+                        {{-- <th>Действия</th> --}}
                     </tr>
                 </thead>
                 <tbody>
@@ -62,9 +62,9 @@
                                 <span class="badge bg-warning">Черновик</span>
                             @endif
                         </td>
-                        <td>
+                        {{-- <td>
                             <a href="{{ route('organizer.events.show', $event) }}" class="btn btn-sm btn-outline-primary">Просмотр</a>
-                        </td>
+                        </td> --}}
                     </tr>
                     @endforeach
                 </tbody>

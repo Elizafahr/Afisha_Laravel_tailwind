@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+
+use App\Models\Event;
+use App\Models\Booking;
 use App\Models\Organizer;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class OrganizerController extends Controller
 {
@@ -51,4 +55,47 @@ class OrganizerController extends Controller
     }
 
 
+    public function dashboard()
+    {
+        // Получаем текущего организатора
+        $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
+
+        // Получаем ID мероприятий организатора
+        $eventIds = Event::where('organizer_id', $organizer->organizer_id)
+            ->pluck('event_id');
+
+        // Получаем мероприятия с количеством бронирований
+        $events = Event::whereIn('event_id', $eventIds)
+            ->withCount('bookings')
+            ->latest()
+            ->paginate(10);
+
+        // Общее количество бронирований
+        $totalBookings = Booking::whereHas('ticket', function ($query) use ($eventIds) {
+            $query->whereIn('event_id', $eventIds);
+        })
+            ->orWhereHas('seat', function ($query) use ($eventIds) {
+                $query->whereIn('event_id', $eventIds);
+            })
+            ->count();
+
+        return view('organizer.dashboard', compact('events', 'totalBookings', 'organizer'));
+    }
+
+    public function bookings()
+    {
+        $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
+
+        $bookings = Booking::whereHas('ticket.event', function ($query) use ($organizer) {
+            $query->where('organizer_id', $organizer->id);
+        })
+            ->orWhereHas('seat.event', function ($query) use ($organizer) {
+                $query->where('organizer_id', $organizer->id);
+            })
+            ->with(['ticket.event', 'seat.event', 'user'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return view('organizer.events.bookings', compact('bookings'));
+    }
 }

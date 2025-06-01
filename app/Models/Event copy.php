@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Event extends Model
 {
     use HasFactory;
+    use SoftDeletes;
 
-      protected $primaryKey = 'event_id';
+    protected $primaryKey = 'event_id';
     // Константы для типов бронирования
     const BOOKING_TYPE_SEATED = 'seated';
     const BOOKING_TYPE_GENERAL = 'general';
@@ -54,11 +56,11 @@ class Event extends Model
     }
 
 
-  // Проверка, есть ли бесплатные билеты
-  public function hasFreeTickets()
-  {
-      return $this->tickets()->where('price', 0)->exists();
-  }
+    // Проверка, есть ли бесплатные билеты
+    public function hasFreeTickets()
+    {
+        return $this->tickets()->where('price', 0)->exists();
+    }
     public function tickets()
     {
         return $this->hasMany(Ticket::class, 'event_id', 'event_id');
@@ -92,14 +94,10 @@ class Event extends Model
         return $this->hasMany(Review::class, 'event_id', 'event_id');
     }
 
-    // public function bookings()
-    // {
-    //     return $this->hasManyThrough(Booking::class, Ticket::class, 'event_id', 'ticket_id', 'event_id', 'ticket_id');
-    // }
     public function bookings()
-{
-    return $this->hasMany(Booking::class, 'event_id', 'event_id');
-}
+    {
+        return $this->hasManyThrough(Booking::class, Ticket::class, 'event_id', 'ticket_id', 'event_id', 'ticket_id');
+    }
 
     // Scope-ы
     public function scopeUpcoming($query)
@@ -114,7 +112,7 @@ class Event extends Model
 
     public function scopeFree($query)
     {
-        return $query->whereHas('tickets', function($q) {
+        return $query->whereHas('tickets', function ($q) {
             $q->where('price', 0);
         });
     }
@@ -139,5 +137,4 @@ class Event extends Model
     {
         return Carbon::parse($this->start_datetime)->diffForHumans($this->end_datetime, true);
     }
-
 }

@@ -39,17 +39,14 @@
                 <tbody class="bg-white divide-y divide-gray-200">
                     @foreach ($recentBookings as $booking)
                         <tr>
-                            <td>{{ $booking->id }}</td>
+                            <td>{{ $booking->booking_id }}</td>
                             <td>
-                                @if ($booking->event)
-                                    {{ $booking->event->title }}
-                                @else
-                                    <span class="text-gray-400">Мероприятие удалено</span>
-                                @endif
+                                 {{ $booking->event_title   }}
+
                             </td>
                             <td>
                                 @if ($booking->user)
-                                    {{ $booking->user->name }}
+                                {{ $booking->user->username   }}
                                 @else
                                     <span class="text-gray-400">Пользователь удален</span>
                                 @endif

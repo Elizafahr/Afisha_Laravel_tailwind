@@ -17,6 +17,30 @@
 <!-- Добавьте в секцию head -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+<style>
+    .seating-grid {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .stage {
+        width: 80%;
+        margin: 0 auto;
+        padding: 8px;
+        background: #f0f0f0;
+        border-radius: 4px;
+    }
+    .seat {
+        transition: all 0.2s ease;
+    }
+    .seat.selected {
+        background-color: #3b82f6 !important;
+        color: white;
+    }
+    .col-header {
+        font-size: 0.75rem;
+        color: #666;
+    }
+</style>
 
     @stack('styles')
 </head>

@@ -45,7 +45,7 @@ class AdminEventController extends Controller
             'rows' => 'nullable|integer|min:1|required_if:booking_type,seated',
             'columns' => 'nullable|integer|min:1|required_if:booking_type,seated',
             'link' => 'nullable|url',
-            'organizer_id' => 'required|exists:organizers,organizer_id',
+            'organizer_id' => 'required|exists:organizers,id',
 
         ]);
 

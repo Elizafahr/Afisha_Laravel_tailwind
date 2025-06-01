@@ -4,16 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory ;
 
     protected $primaryKey = 'booking_id';
 
     protected $fillable = [
         'user_id',
-        'event_id', // Добавляем явную связь с событием
+        'event_id',
         'ticket_id',
         'seat_id',
         'quantity',
@@ -33,11 +34,16 @@ class Booking extends Model
     const STATUS_CANCELLED = 'cancelled';
     const STATUS_EXPIRED = 'expired';
 
-    // Отношения
+    // Отношения с мягким удалением
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
+
+   public function event()
+{
+    return $this->belongsTo(Event::class, 'event_id', 'event_id');
+}
 
     public function ticket()
     {
@@ -49,33 +55,29 @@ class Booking extends Model
         return $this->belongsTo(Seat::class, 'seat_id', 'seat_id');
     }
 
-    // Явная связь с событием
-    // public function event()
-    // {
-    //     return $this->belongsTo(Event::class, 'event_id', 'event_id');
-    // }
-
-    // Безопасный метод получения события
-    public function getEvent()
+    // Accessors для безопасного получения данных
+    public function getEventTitleAttribute()
     {
         if ($this->event) {
-            return $this->event;
+            return $this->event->title;
         }
 
-        if ($this->ticket) {
-            return $this->ticket->event;
+        if ($this->ticket && $this->ticket->event) {
+            return $this->ticket->event->title;
         }
 
-        if ($this->seat) {
-            return $this->seat->event;
+        if ($this->seat && $this->seat->event) {
+            return $this->seat->event->title;
         }
 
-        return null;
+        return 'Мероприятие удалено';
     }
-public function event()
-{
-    return $this->belongsTo(Event::class, 'event_id');
-}
+
+    public function getUserNameAttribute()
+    {
+        return $this->user?->name ?? 'Пользователь удален';
+    }
+
     // Scope-ы
     public function scopeConfirmed($query)
     {
@@ -109,15 +111,5 @@ public function event()
         if ($this->seat) {
             $this->seat->update(['is_reserved' => false]);
         }
-    }
-    // В модели Booking
-    public function getEventTitleAttribute()
-    {
-        return $this->event?->title ?? 'Мероприятие удалено';
-    }
-
-    public function getUserNameAttribute()
-    {
-        return $this->user?->name ?? 'Пользователь удален';
     }
 }

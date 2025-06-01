@@ -9,6 +9,7 @@ use App\Models\Ticket;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BookingController extends Controller
 {
@@ -184,4 +185,82 @@ class BookingController extends Controller
 
         return $price * $data['quantity'];
     }
+
+   public function bookSeats(Request $request, Event $event)
+{
+    // Проверка доступности бронирования
+    if (!$event->is_booking || $event->is_free) {
+        return back()->with('error', 'Бронирование для этого мероприятия недоступно');
+    }
+
+    // Валидация
+    $validated = $request->validate([
+        'ticket_id' => 'nullable|integer|exists:tickets,ticket_id',
+        'selected_seats' => 'required|json',
+    ]);
+
+    // Парсим выбранные места
+    $selectedSeats = json_decode($request->selected_seats, true);
+    if (empty($selectedSeats)) {
+        return back()->with('error', 'Не выбрано ни одного места');
+    }
+
+    // Проверяем доступность мест
+    $seatIds = array_column($selectedSeats, 'id');
+    $existingSeats = Seat::whereIn('seat_id', $seatIds)->get()->keyBy('seat_id');
+
+    foreach ($selectedSeats as $seat) {
+        if (!isset($existingSeats[$seat['id']]) ){
+            return back()->with('error', 'Одно из выбранных мест не существует');
+        }
+        if ($existingSeats[$seat['id']]->is_reserved) {
+            return back()->with('error', 'Место ' . $seat['id'] . ' уже занято');
+        }
+    }
+
+    // Рассчитываем общую цену
+    $totalPrice = array_sum(array_column($selectedSeats, 'price'));
+
+    // Если выбран тип билета, используем его цену
+    if ($request->ticket_id) {
+        $ticket = Ticket::find($request->ticket_id);
+        $totalPrice = $ticket->price * count($selectedSeats);
+    }
+
+    // Создаем бронирование
+    try {
+        DB::beginTransaction();
+
+        $booking = Booking::create([
+            'user_id' => auth()->id(),
+            'ticket_id' => $request->ticket_id,
+            'quantity' => count($selectedSeats),
+            'total_price' => $totalPrice,
+            'status' => 'confirmed',
+            'payment_method' => 'online'
+        ]);
+
+        // Резервируем места
+        Seat::whereIn('seat_id', $seatIds)
+            ->update([
+                'is_reserved' => true,
+                'booking_id' => $booking->booking_id
+            ]);
+
+        // Обновляем доступность билетов
+        if ($request->ticket_id) {
+            Ticket::where('ticket_id', $request->ticket_id)
+                ->decrement('quantity_available', count($selectedSeats));
+        }
+
+        DB::commit();
+
+        return redirect()->route('bookings.show', $booking)
+            ->with('success', 'Бронирование успешно завершено!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Ошибка бронирования: ' . $e->getMessage());
+    }
+}
 }

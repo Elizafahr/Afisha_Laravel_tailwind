@@ -39,12 +39,12 @@ Route::controller(EventController::class)->group(function () {
     Route::get('/events/upcoming', 'upcoming')->name('events.upcoming');
 
     Route::post('/events/{event}/favorite', 'store')
-         ->name('events.favorite.add')
-         ->middleware('auth');
+        ->name('events.favorite.add')
+        ->middleware('auth');
 
     Route::delete('/events/{event}/favorite', 'destroy')
-         ->name('events.favorite.remove')
-         ->middleware('auth');
+        ->name('events.favorite.remove')
+        ->middleware('auth');
 
     Route::post('/add-to-favorites/{eventId}', 'addToFavorites')->middleware('auth');
     Route::post('/remove-from-favorites/{eventId}', 'removeFromFavorites')->name('remove-from-favorites');
@@ -104,7 +104,7 @@ Route::prefix('admin')->middleware('auth')->controller(AdminController::class)->
     // Управление мероприятиями
     Route::get('/events', 'eventsIndex')->name('admin.events.index');
     Route::get('/events/create', 'eventsCreate')->name('admin.events.create');
-    Route::post('/events', 'eventsStore')->name('admin.events.store');
+
     Route::get('/events/{event}/edit', 'eventsEdit')->name('admin.events.edit');
     Route::put('/events/{event}', 'eventsUpdate')->name('admin.events.update');
     Route::delete('/events/{event}', 'eventsDestroy')->name('admin.events.destroy');
@@ -121,23 +121,40 @@ Route::prefix('admin')->middleware('auth')->controller(AdminController::class)->
     Route::put('/users/{user}', 'usersUpdate')->name('admin.users.update')->where('user', '[0-9]+');
     Route::delete('/users/{user}', 'usersDestroy')->name('admin.users.destroy');
 
-    Route::get('/organizers/create', [AdminController::class, 'createOrganizer'])
-        ->name('admin.organizers.create');
+    Route::get('/organizers/create', 'createOrganizer')->name('admin.organizers.create');
+    Route::post('/organizers', 'storeOrganizer')->name('admin.organizers.store');
 
-    Route::post('/organizers', [AdminController::class, 'storeOrganizer'])
-        ->name('admin.organizers.store');
-
-        // Настройки системы
+    // Настройки системы
     Route::get('/settings', 'settings')->name('admin.settings');
     Route::post('/settings', 'updateSettings')->name('admin.settings.update');
 });
+Route::post('/events', [AdminEventController::class, 'store'])->name('admin.events.store');
 
-  Route::get('/dashboard', [OrganizerEventController::class, 'dashboard'])->name('organizer.dashboard');
-    Route::resource('events', OrganizerEventController::class);
+// Маршруты организатора
+Route::prefix('organizer')->group(function () {
+    Route::get('/dashboard', [OrganizerController::class, 'dashboard'])->name('organizer.dashboard');
+
+    //форма создания мероприятия
+    Route::get('/events/create', [OrganizerEventController::class, 'create'])->name('organizer.events.create');
+    Route::post('/events/store', [OrganizerEventController::class, 'store'])->name('organizer.events.store');
+    Route::post('/events/show', [OrganizerEventController::class, 'show'])->name('organizer.events.show');
+    Route::get('/events', [OrganizerEventController::class, 'index'])->name('organizer.events.index');
+    Route::get('events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('organizer.events.edit');
+    Route::delete('events/{event}', [OrganizerEventController::class, 'destroy'])->name('organizer.events.destroy');
+    Route::put('events/{event}', [OrganizerEventController::class, 'update'])->name('organizer.events.update');
     Route::get('events/{event}/tickets', [OrganizerEventController::class, 'tickets'])->name('organizer.events.tickets');
     Route::post('events/{event}/tickets', [OrganizerEventController::class, 'storeTickets']);
     Route::get('events/{event}/seats', [OrganizerEventController::class, 'seats'])->name('organizer.events.seats');
     Route::post('events/{event}/seats', [OrganizerEventController::class, 'storeSeats']);
     Route::get('bookings', [OrganizerController::class, 'bookings'])->name('organizer.bookings');
     Route::get('reviews', [OrganizerController::class, 'reviews'])->name('organizer.reviews');
-
+Route::get('bookings', [OrganizerController::class, 'bookings'])->name('organizer.bookings');
+Route::get('events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('organizer.events.edit');
+Route::delete('events/{event}', [OrganizerEventController::class, 'destroy'])->name('organizer.events.destroy');
+Route::put('events/{event}', [OrganizerEventController::class, 'update'])->name('organizer.events.update');
+});
+  Route::get('events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('organizer.events.edit');
+    Route::put('events/{event}', [OrganizerEventController::class, 'update'])->name('organizer.events.update');
+Route::post('/events/{event}/book-seats', [BookingController::class, 'bookSeats'])
+    ->name('bookings.bookSeats')
+    ->middleware('auth');
