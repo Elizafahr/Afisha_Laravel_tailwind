@@ -1,9 +1,10 @@
 <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition duration-300">
-    <!-- Изображение мероприятия -->{{-- ?? 'https://via.placeholder.com/300x200?text=Каменск-События' }}" --}}
+    <!-- Изображение мероприятия -->
     <div class="relative h-48 overflow-hidden">
-        <img src="{{ asset(path: 'images/' . ($event->poster ?? '1.jpg')) }}"        alt="{{ $event->title }}"
-        class="w-full h-full object-cover">
-        @if($event->is_free)
+      <img src="{{ asset('images/' . ($event->poster ?? '1.jpg')) }}"
+     alt="{{ $event->title }}"
+     class="w-full h-full object-cover">
+  @if ($event->is_free)
             <span class="absolute top-2 right-2 bg-green-500 text-white text-xs font-bold px-2 py-1 rounded">
                 Бесплатно
             </span>
@@ -14,7 +15,7 @@
     <div class="p-4">
         <div class="flex justify-between items-start">
             <h3 class="text-lg font-bold text-gray-800 mb-1">{{ $event->title }}</h3>
-            @if($event->age_restriction > 0)
+            @if ($event->age_restriction > 0)
                 <span class="bg-gray-200 text-gray-800 text-xs px-2 py-1 rounded">
                     {{ $event->age_restriction }}+
                 </span>
@@ -32,17 +33,18 @@
         </div>
 
         <div class="flex justify-between items-center">
-            @if(!$event->is_free)
+            @if (!$event->is_free)
                 <span class="text-red-600 font-bold">{{ $event->price }} ₽</span>
             @else
                 <span class="text-green-600 font-bold">Бесплатно</span>
             @endif
 
-            <a href="{{ route('events.show', $event) }}" class="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm transition">
+            <a href="{{ route('events.show', $event) }}"
+                class="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm transition">
 
-                 Подробнее
-             </a>
-             {{-- <a href="{{ route('events.show', $event->id) }}"
+                Подробнее
+            </a>
+            {{-- <a href="{{ route('events.show', $event->id) }}"
                 class="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-md text-sm transition">
                  Подробнее
              </a> --}}

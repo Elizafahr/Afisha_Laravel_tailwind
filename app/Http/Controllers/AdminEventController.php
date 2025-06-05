@@ -16,7 +16,6 @@ class AdminEventController extends Controller
         $events = Event::withCount('bookings')->latest()->paginate(15);
         return view('admin.events.index', compact('events'));
     }
-
     public function create()
     {
           $organizers = Organizer::all(); // Или любой другой запрос
@@ -24,7 +23,6 @@ class AdminEventController extends Controller
             'title' => 'Создание мероприятия',
             'organizers' =>  $organizers
         ]);}
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -35,7 +33,7 @@ class AdminEventController extends Controller
             'end_datetime' => 'required|date|after:start_datetime',
             'location' => 'required|string',
             'age_restriction' => 'nullable|integer|min:0',
-            'poster_url' => 'nullable|url',
+            'poster' => 'nullable|url',
             'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_free' => 'nullable|in:0,1', // Принимает 0 или 1
             'price' => 'nullable|numeric|min:0|required_if:is_free,0',
@@ -48,13 +46,7 @@ class AdminEventController extends Controller
             'organizer_id' => 'required|exists:organizers,organizer_id',
 
         ]);
-
-
-
-
-        $posterUrl = $validated['poster_url'] ?? null;
-
-
+        $posterUrl = $validated['poster'] ?? null;
         // Создаем мероприятие
         $event = new Event();
         $event->title = $validated['title'];
@@ -64,7 +56,7 @@ class AdminEventController extends Controller
         $event->end_datetime = $validated['end_datetime'];
         $event->location = $validated['location'];
         $event->age_restriction = $validated['age_restriction'] ?? null;
-        $event->poster_url = $posterUrl;
+        $event->poster = $posterUrl;
         $event->is_free = $validated['is_free'] ?? 0; // По умолчанию 0 (платное)
         $event->price = $validated['price'] ?? 0;
         $event->is_published = $validated['is_published'] ?? 0; // По умолчанию не опубликовано
@@ -81,34 +73,26 @@ class AdminEventController extends Controller
         if ($request->booking_type === 'seated') {
             $this->generateSeats($event, $request->rows, $request->columns);
         }
-
         return redirect()->route('admin.dashboard')
             ->with('success', 'Мероприятие успешно создано!');
     }
-
     public function edit(Event $event)
     {
         return view('admin.events.edit', compact('event'));
     }
-
     public function update(Request $request, Event $event)
     {
         $validated = $request->validate([
-            // те же правила, что и для store
         ]);
-
         $event->update($validated);
-
         // Обновление изображения
         if ($request->hasFile('image')) {
             $event->clearMediaCollection('events');
             $event->addMediaFromRequest('image')
                 ->toMediaCollection('events');
         }
-
         return back()->with('success', 'Мероприятие обновлено');
     }
-
     public function destroy(Event $event)
     {
         $event->delete();

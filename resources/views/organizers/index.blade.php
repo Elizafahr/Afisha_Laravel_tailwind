@@ -16,7 +16,7 @@
                     <div class="p-6">
                         <div class="flex items-center mb-4">
                             @if($organizer->logo_url)
-                                <img src="{{ $organizer->logo_url }}" alt="{{ $organizer->organization_name }}" class="w-16 h-16 object-cover rounded-full mr-4">
+                                {{-- <img src="{{ $organizer->logo_url }}" alt="{{ $organizer->organization_name }}" class="w-16 h-16 object-cover rounded-full mr-4"> --}}
                             @else
                                 <div class="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center text-gray-500 mr-4">
                                     <i class="fas fa-building text-2xl"></i>
@@ -25,9 +25,9 @@
                             <div>
                                 <h3 class="font-bold text-lg">{{ $organizer->organization_name }}</h3>
                                 @if($organizer->is_verified)
-                                    <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mt-1">
+                                    {{-- <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mt-1">
                                         <i class="fas fa-check-circle mr-1"></i> Проверенный
-                                    </span>
+                                    </span> --}}
                                 @endif
                             </div>
                         </div>
@@ -100,7 +100,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <div class="flex items-center">
                                         @if($organizer->logo_url)
-                                            <img src="{{ $organizer->logo_url }}" alt="{{ $organizer->organization_name }}" class="w-10 h-10 object-cover rounded-full mr-3">
+                                            {{-- <img src="{{ $organizer->logo_url }}" alt="{{ $organizer->organization_name }}" class="w-10 h-10 object-cover rounded-full mr-3"> --}}
                                         @endif
                                         <div>
                                             <div class="font-medium text-gray-900">{{ $organizer->organization_name }}</div>
@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-lg shadow-md p-6">
+    {{-- <div class="bg-white rounded-lg shadow-md p-6">
         <h2 class="text-xl font-bold text-gray-800 mb-4">Стать организатором</h2>
         <p class="text-gray-600 mb-6">Если вы хотите размещать свои мероприятия на нашей платформе, заполните заявку ниже.</p>
 
@@ -239,6 +239,6 @@
                 Отправить заявку
             </button>
         </form>
-    </div>
+    </div> --}}
 </div>
 @endsection

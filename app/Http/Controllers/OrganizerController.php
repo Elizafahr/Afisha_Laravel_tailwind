@@ -15,15 +15,9 @@ class OrganizerController extends Controller
     {
         $verifiedOrganizers = Organizer::withCount('events')
             ->where('is_verified', true)
-            ->orderByDesc('events_count')
-            ->limit(6)
-            ->get();
-
+            ->orderByDesc('events_count')->limit(6)->get();
         $allOrganizers = Organizer::withCount('events')
-            ->orderByDesc('is_verified')
-            ->orderByDesc('events_count')
-            ->paginate(10);
-
+            ->orderByDesc('is_verified')->orderByDesc('events_count')->paginate(10);
         return view('organizers.index', compact('verifiedOrganizers', 'allOrganizers'));
     }
 
@@ -33,10 +27,8 @@ class OrganizerController extends Controller
             ->where('start_datetime', '>', now())
             ->orderBy('start_datetime')
             ->paginate(6);
-
         return view('organizers.show', compact('organizer', 'events'));
     }
-
     public function apply(Request $request)
     {
         $validated = $request->validate([
@@ -48,40 +40,28 @@ class OrganizerController extends Controller
             'logo' => 'nullable|image|max:2048',
             'terms' => 'required|accepted',
         ]);
-
-        // Создание заявки (можно добавить логику сохранения в базу)
-
         return back()->with('success', 'Ваша заявка успешно отправлена! Мы рассмотрим ее в ближайшее время.');
     }
-
-
     public function dashboard()
     {
         // Получаем текущего организатора
         $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
-
         // Получаем ID мероприятий организатора
         $eventIds = Event::where('organizer_id', $organizer->organizer_id)
             ->pluck('event_id');
-
         // Получаем мероприятия с количеством бронирований
         $events = Event::whereIn('event_id', $eventIds)
             ->withCount('bookings')
             ->latest()
             ->paginate(10);
-
         // Общее количество бронирований
         $totalBookings = Booking::whereHas('ticket', function ($query) use ($eventIds) {
             $query->whereIn('event_id', $eventIds);
-        })
-            ->orWhereHas('seat', function ($query) use ($eventIds) {
+        })->orWhereHas('seat', function ($query) use ($eventIds) {
                 $query->whereIn('event_id', $eventIds);
-            })
-            ->count();
-
+            })->count();
         return view('organizer.dashboard', compact('events', 'totalBookings', 'organizer'));
     }
-
     public function bookings()
     {
         $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();

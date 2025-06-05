@@ -21,7 +21,8 @@
                         <!-- Кнопка добавления в избранное -->
                         @auth
                             <form class="favorite-form"
-                                action="{{ route(auth()->user()->hasFavorite($event->event_id) ? 'events.favorite.remove' : 'events.favorite.add', $event) }}"
+                                action="{{ route(auth()->user()->hasFavorite($event->event_id) ?
+                                 'events.favorite.remove' : 'events.favorite.add', $event) }}"
                                 method="POST">
                                 @csrf
                                 @if (auth()->user()->hasFavorite($event->event_id))
@@ -89,59 +90,26 @@
                                         <div class="d-flex align-items-center mb-3">
                                             @if ($event->organizer->logo_url)
                                                 <img src="{{ $event->organizer->logo_url }}" class="rounded me-3"
-                                                    width="60" height="60" style="object-fit: cover;"
-                                                    alt="Логотип организатора">
+                                                    width="60" height="60" style="object-fit: cover;" alt="Логотип организатора">
                                             @endif
                                             <div>
                                                 <h6 class="mb-1">{{ $event->organizer->organization_name }}</h6>
-                                                @if ($event->organizer->is_verified)
-                                                    <span class="badge bg-success">Проверенный организатор</span>
+                                                @if ($event->organizer->is_verified) <span class="badge bg-success">Проверенный организатор</span>
                                                 @endif
                                             </div>
                                         </div>
-
                                         @if ($event->organizer->description)
                                             <p class="mb-2">{{ $event->organizer->description }}</p>
                                         @endif
 
                                         @if ($event->organizer->contact_person)
-                                            <p class="mb-0"><strong>Контактное лицо:</strong>
-                                                {{ $event->organizer->contact_person }}</p>
+                                            <p class="mb-0"><strong>Контактное лицо:</strong>{{ $event->organizer->contact_person }}</p>
                                         @endif
                                     </div>
                                 </div>
                             </div>
                         @endif
                     </div>
-
-                    {{-- <div class="card-footer bg-white">
-    @if (!$event->is_free)
-        @if ($event->is_booking)
-            <!-- Для событий с бронированием -->
-            <a href="{{ route('bookings.create', $event->id) }}"
-               class="btn btn-primary btn-lg">
-               Забронировать билет
-            </a>
-        @elseif($event->link)
-            <!-- Для событий со сторонней продажей -->
-            <a href="{{ $event->link }}"
-               class="btn btn-primary btn-lg"
-               target="_blank">
-               Купить билет
-            </a>
-        @else
-            <!-- Для платных событий без бронирования и ссылки -->
-            <button class="btn btn-secondary btn-lg" disabled>
-                Билеты не доступны
-            </button>
-        @endif
-    @endif
-
-    <a href="{{ route('events.index') }}" class="btn btn-outline-secondary">
-        Все события
-    </a>
-</div> --}}
-
                     <div class="card-footer bg-white">
                         @if (!$event->is_free)
                             @if ($event->is_booking)
@@ -155,37 +123,29 @@
                                 </a>
                             @endif
                         @endif
-
                         <a href="{{ route('events.index') }}" class="btn btn-outline-secondary">
                             Все события
                         </a>
                     </div>
                 </div>
             </div>
-
             <div class="col-lg-4">
                 <!-- Боковая панель с дополнительной информацией -->
                 <div class="card mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Детали события</h5>
-                    </div>
+                    <div class="card-header bg-primary text-white"><h5 class="mb-0">Детали события</h5></div>
                     <div class="card-body">
                         <ul class="list-group list-group-flush">
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>Дата:</span>
-                                <strong>{{ $event->start_datetime->format('d.m.Y') }}</strong>
+                                <span>Дата:</span><strong>{{ $event->start_datetime->format('d.m.Y') }}</strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
-                                <span>Время:</span>
-                                <strong>{{ $event->start_datetime->format('H:i') }}</strong>
+                                <span>Время:</span><strong>{{ $event->start_datetime->format('H:i') }}</strong>
                             </li>
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>Цена:</span>
                                 <strong>
-                                    @if ($event->is_free)
-                                        Бесплатно
-                                    @else
-                                        {{ $event->price ?? 'Цена не указана' }} руб.
+                                    @if ($event->is_free)Бесплатно
+                                    @else{{ $event->price ?? 'Цена не указана' }} руб.
                                     @endif
                                 </strong>
                             </li>
@@ -208,8 +168,8 @@
                                 <div class="mb-3">
                                     <a href="{{ route('events.show', $relatedEvent) }}" class="text-decoration-none">
                                         <div class="d-flex">
-                                            @if ($relatedEvent->image)
-                                                <img src="{{ asset('storage/' . $relatedEvent->image) }}"
+                                            @if ($relatedEvent->poster)
+                                                <img src="{{ asset('images/' . $relatedEvent->poster) }}"
                                                     class="rounded me-3" width="80" height="60"
                                                     style="object-fit: cover;" alt="{{ $relatedEvent->title }}">
                                             @else

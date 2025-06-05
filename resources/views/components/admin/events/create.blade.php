@@ -50,7 +50,7 @@
                         <select class="form-select" id="organizer_id" name="organizer_id" required>
                             <option value="">-- Выберите организатора --</option>
                             @foreach ($organizers as $organizer)
-<option value="{{ $organizer->organizer_id }}" @selected(old('organizer_id') == $organizer->organizer_id)>
+                                <option value="{{ $organizer->organizer_id }}" @selected(old('organizer_id') == $organizer->organizer_id)>
                                     {{ $organizer->organization_name }}
                                 </option>
                             @endforeach
@@ -65,7 +65,8 @@
 
                 <div class="mb-3">
                     <label for="description" class="form-label">Описание</label>
-                    <textarea class="form-control" id="description" name="description" rows="3" required>{{ old('description', $event->description ?? '') }}</textarea>
+                    <textarea class="form-control" id="description" name="description" rows="3"
+                    required>{{ old('description', $event->description ?? '') }}</textarea>
                 </div>
 
                 <div class="row mb-3">

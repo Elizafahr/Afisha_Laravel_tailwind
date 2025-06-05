@@ -15,8 +15,14 @@ class Seat extends Model
     protected $primaryKey = 'seat_id';
 
     protected $fillable = [
-     'event_id', 'zone', 'row', 'number',
-    'price', 'is_vip', 'is_reserved', 'booking_id'
+        'event_id',
+        'zone',
+        'row',
+        'number',
+        'price',
+        'is_vip',
+        'is_reserved',
+        'booking_id'
     ];
 
     protected $casts = [

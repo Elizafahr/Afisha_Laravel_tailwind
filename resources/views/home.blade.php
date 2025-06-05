@@ -25,9 +25,6 @@
                                 @endif
                             </p>
                             <a href="{{ route('events.show', $event) }}" class="btn btn-danger mt-2">Подробнее</a>
-                            <!-- @if (!$event->is_free)
-                                <a href="#" class="btn btn-success mt-2">Купить билет</a>
-                            @endif -->
                         </div>
                     </div>
                 @endforeach
@@ -93,86 +90,86 @@
 
     <!-- Спецразделы -->
     <section class="mb-12">
-    <div class="grid md:grid-cols-3 gap-6">
-        <!-- Сегодня в Каменске -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-calendar-day text-red-600 mr-2"></i> Сегодня в Каменске
-            </h3>
-            <div class="space-y-4">
-                @forelse($todayEvents as $event)
-                    <div class="border-b pb-3 last:border-0">
-                        <h4 class="font-medium">{{ $event->title }}</h4>
-                        <div class="text-sm text-gray-600">
-                            {{ $event->start_datetime->format('H:i') }}
-                            @if ($event->location)
-                                • {{ $event->location }}
-                            @endif
+        <div class="grid md:grid-cols-3 gap-6">
+            <!-- Сегодня в Каменске -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-calendar-day text-red-600 mr-2"></i> Сегодня в Каменске
+                </h3>
+                <div class="space-y-4">
+                    @forelse($todayEvents as $event)
+                        <div class="border-b pb-3 last:border-0">
+                            <h4 class="font-medium">{{ $event->title }}</h4>
+                            <div class="text-sm text-gray-600">
+                                {{ $event->start_datetime->format('H:i') }}
+                                @if ($event->location)
+                                    • {{ $event->location }}
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="text-sm text-gray-500">Нет событий сегодня</div>
-                @endforelse
+                    @empty
+                        <div class="text-sm text-gray-500">Нет событий сегодня</div>
+                    @endforelse
+                </div>
+                <a href="{{ route('events.index', ['date' => 'today']) }}"
+                    class="mt-4 inline-block text-red-600 hover:text-red-800 text-sm font-medium">
+                    Все события сегодня <i class="fas fa-arrow-right ml-1"></i>
+                </a>
             </div>
-            <a href="{{ route('events.index', ['date' => 'today']) }}"
-                class="mt-4 inline-block text-red-600 hover:text-red-800 text-sm font-medium">
-                Все события сегодня <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
 
-        <!-- Бесплатные мероприятия -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-tag text-green-600 mr-2"></i> Бесплатно
-            </h3>
-            <div class="space-y-4">
-                @forelse($freeEvents as $event)
-                    <div class="border-b pb-3 last:border-0">
-                        <h4 class="font-medium">{{ $event->title }}</h4>
-                        <div class="text-sm text-gray-600">
-                            {{ $event->start_datetime->format('d.m H:i') }}
-                            @if ($event->location)
-                                • {{ $event->location }}
-                            @endif
+            <!-- Бесплатные мероприятия -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-tag text-green-600 mr-2"></i> Бесплатно
+                </h3>
+                <div class="space-y-4">
+                    @forelse($freeEvents as $event)
+                        <div class="border-b pb-3 last:border-0">
+                            <h4 class="font-medium">{{ $event->title }}</h4>
+                            <div class="text-sm text-gray-600">
+                                {{ $event->start_datetime->format('d.m H:i') }}
+                                @if ($event->location)
+                                    • {{ $event->location }}
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="text-sm text-gray-500">Нет бесплатных событий</div>
-                @endforelse
+                    @empty
+                        <div class="text-sm text-gray-500">Нет бесплатных событий</div>
+                    @endforelse
+                </div>
+                <a href="{{ route('events.index', ['price' => 'free']) }}"
+                    class="mt-4 inline-block text-red-600 hover:text-red-800 text-sm font-medium">
+                    Все бесплатные события <i class="fas fa-arrow-right ml-1"></i>
+                </a>
             </div>
-            <a href="{{ route('events.index', ['price' => 'free']) }}"
-               class="mt-4 inline-block text-red-600 hover:text-red-800 text-sm font-medium">
-                Все бесплатные события <i class="fas fa-arrow-right ml-1"></i>
-            </a>
-        </div>
 
-        <!-- Скоро в городе -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-star text-yellow-500 mr-2"></i> Скоро в городе
-            </h3>
-            <div class="space-y-4">
-                @forelse($featuredEvents as $event)
-                    <div class="border-b pb-3 last:border-0">
-                        <h4 class="font-medium">{{ $event->title }}</h4>
-                        <div class="text-sm text-gray-600">
-                            {{ $event->start_datetime->format('d.m.Y') }}
-                            @if ($event->location)
-                                • {{ $event->location }}
-                            @endif
+            <!-- Скоро в городе -->
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fas fa-star text-yellow-500 mr-2"></i> Скоро в городе
+                </h3>
+                <div class="space-y-4">
+                    @forelse($featuredEvents as $event)
+                        <div class="border-b pb-3 last:border-0">
+                            <h4 class="font-medium">{{ $event->title }}</h4>
+                            <div class="text-sm text-gray-600">
+                                {{ $event->start_datetime->format('d.m.Y') }}
+                                @if ($event->location)
+                                    • {{ $event->location }}
+                                @endif
+                            </div>
                         </div>
-                    </div>
-                @empty
-                    <div class="text-sm text-gray-500">Нет предстоящих событий</div>
-                @endforelse
+                    @empty
+                        <div class="text-sm text-gray-500">Нет предстоящих событий</div>
+                    @endforelse
+                </div>
+                <a href="{{ route('events.index') }}"
+                    class="mt-4 inline-block text-red-600 hover:text-red-800 text-sm font-medium">
+                    Все анонсы <i class="fas fa-arrow-right ml-1"></i>
+                </a>
             </div>
-            <a href="{{ route('events.index') }}"
-                class="mt-4 inline-block text-red-600 hover:text-red-800 text-sm font-medium">
-                Все анонсы <i class="fas fa-arrow-right ml-1"></i>
-            </a>
         </div>
-    </div>
-</section>
+    </section>
     <!-- Новости и анонсы -->
     <section class="mb-12">
         <div class="flex justify-between items-center mb-6">

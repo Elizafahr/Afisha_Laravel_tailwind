@@ -20,10 +20,8 @@
                                 </ul>
                             </div>
                         @endif
-
-<form method="POST" action="{{ route('bookings.bookSeats', $event) }}">
+                        <form method="POST" action="{{ route('bookings.store', $event) }}">
                             @csrf
-
                             <!-- Выбор типа билета -->
                             @if ($tickets->isNotEmpty())
                                 <div class="mb-3">
@@ -40,7 +38,6 @@
                                 </div>
                             @endif
 
-
                             @if ($event->isSeated())
                                 <div class="mb-6">
                                     <h3 class="text-lg font-medium mb-4">Выберите места</h3>
@@ -49,11 +46,9 @@
                                             <div class="zone mb-8">
                                                 <h4 class="text-md font-semibold mb-4">Зона {{ $zone }}</h4>
 
-                                                <!-- Theater-style seating layout -->
                                                 <div class="stage mb-4 text-center text-gray-600 font-medium">СЦЕНА</div>
 
                                                 <div class="seating-grid">
-                                                    <!-- Column headers -->
                                                     <div class="grid grid-cols-12 gap-1 mb-1">
                                                         <div class="col-header"></div>
                                                         @foreach (range(1, $seats->groupBy('number')->count()) as $col)
@@ -62,14 +57,11 @@
                                                         @endforeach
                                                     </div>
 
-                                                    <!-- Rows with seats -->
                                                     @foreach ($seats->groupBy('row') as $row => $rowSeats)
                                                         <div class="grid grid-cols-12 gap-1 mb-1">
-                                                            <!-- Row label -->
                                                             <div class="row-label text-center font-medium self-center">Ряд
                                                                 {{ $row }}</div>
 
-                                                            <!-- Seats -->
                                                             @foreach ($rowSeats->sortBy('number') as $seat)
                                                                 <div class="seat w-8 h-8 flex items-center justify-center rounded cursor-pointer text-sm
                                                                     {{ $seat->is_reserved ? 'bg-red-500 cursor-not-allowed' : 'bg-green-200 hover:bg-green-300' }}
@@ -191,48 +183,51 @@
             updateSelectedSeats();
         }
 
-     function updateSelectedSeats() {
-    const seatsInput = document.getElementById('selected_seats');
-     seatsInput.value = JSON.stringify(selectedSeats.map(seat => ({
-        id: seat.id,
-        price: seat.price
-    })));
+        function updateSelectedSeats() {
+            const seatsInput = document.getElementById('selected_seats');
+            seatsInput.value = JSON.stringify(selectedSeats.map(seat => ({
+                id: seat.id,
+                price: seat.price
+            })));
 
 
 
-    seatsInput.value = JSON.stringify(selectedSeats);
+            seatsInput.value = JSON.stringify(selectedSeats);
 
-    const selectedSeatsList = document.getElementById('selected-seats-list');
-    const totalPriceElement = document.getElementById('total-price');
-    const selectedSeatsCount = document.getElementById('selected-seats-count');
-    const ticketSelect = document.getElementById('ticket_id');
-    const quantityInput = document.getElementById('quantity');
+            const totalPriceElement = document.getElementById('total-price');
+            const selectedSeatsCount = document.getElementById('selected-seats-count');
+            const ticketSelect = document.getElementById('ticket_id');
+            const quantityInput = document.getElementById('quantity');
 
-    // Обновляем список выбранных мест
-    selectedSeatsList.innerHTML = selectedSeats.map(seat =>
-        `<div>Место ${seat.id} - ${seat.price}₽</div>`
-    ).join('');
+            const selectedSeatsList = document.getElementById('selected-seats-list');
+            selectedSeatsList.innerHTML = selectedSeats.map(seat =>
+                `<div class="mb-2 p-2 bg-light rounded">Место ${seat.id}  </div>`
+            ).join('');
 
-    // Обновляем счетчик выбранных мест
-    const seatsCount = selectedSeats.length;
-    selectedSeatsCount.textContent = seatsCount;
+  document.getElementById('selected-seats-count').textContent = selectedSeats.length;
+    document.getElementById('quantity').value = selectedSeats.length;
 
-    // Устанавливаем количество билетов равным количеству выбранных мест
-    // Если мест не выбрано, оставляем 1 (для общих билетов)
-    quantityInput.value = seatsCount > 0 ? seatsCount : 1;
+    calculateTotal();
+            // Обновляем счетчик выбранных мест
+            const seatsCount = selectedSeats.length;
+            selectedSeatsCount.textContent = seatsCount;
 
-    // Получаем базовую цену
-    let basePrice = {{ $event->price }};
+            // Устанавливаем количество билетов равным количеству выбранных мест
+            // Если мест не выбрано, оставляем 1 (для общих билетов)
+            quantityInput.value = seatsCount > 0 ? seatsCount : 1;
 
-    // Если выбран тип билета, используем его цену
-    if (ticketSelect && ticketSelect.value) {
-        const selectedOption = ticketSelect.options[ticketSelect.selectedIndex];
-        basePrice = parseFloat(selectedOption.dataset.price);
-    }
+            // Получаем базовую цену
+            let basePrice = {{ $event->price }};
 
-    // Рассчитываем итоговую цену
-    const totalPrice = basePrice * parseInt(quantityInput.value);
-    totalPriceElement.textContent = totalPrice.toFixed(2);
-}
+            // Если выбран тип билета, используем его цену
+            if (ticketSelect && ticketSelect.value) {
+                const selectedOption = ticketSelect.options[ticketSelect.selectedIndex];
+                basePrice = parseFloat(selectedOption.dataset.price);
+            }
+
+            // Рассчитываем итоговую цену
+            const totalPrice = basePrice * parseInt(quantityInput.value);
+            totalPriceElement.textContent = totalPrice.toFixed(2);
+        }
     </script>
 @endsection

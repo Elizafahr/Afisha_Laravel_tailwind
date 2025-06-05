@@ -10,19 +10,18 @@ class Booking extends Model
 {
     use HasFactory ;
 
-    protected $primaryKey = 'booking_id';
+      protected $primaryKey = 'booking_id';
 
     protected $fillable = [
         'user_id',
         'event_id',
         'ticket_id',
-        'seat_id',
         'quantity',
         'total_price',
         'status',
-        'payment_method'
+        'payment_method',
+        'booking_code'
     ];
-
     protected $casts = [
         'total_price' => 'decimal:2',
         'booking_date' => 'datetime',

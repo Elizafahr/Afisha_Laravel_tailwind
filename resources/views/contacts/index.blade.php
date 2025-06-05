@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+        {{-- <div class="bg-white rounded-lg shadow-md p-6 mb-8">
             <h2 class="text-xl font-bold text-gray-800 mb-6">Форма обратной связи</h2>
 
             <form action="{{ route('contacts.submit') }}" method="POST">
@@ -132,7 +132,7 @@
                     Отправить сообщение
                 </button>
             </form>
-        </div>
+        </div> --}}
     </div>
 </div>
 @endsection

@@ -20,16 +20,7 @@ class AdminController extends Controller
             'users' => User::count(),
             'revenue' => Booking::where('status', 'confirmed')->sum('total_price'),
         ];
-
-        // $recentBookings = Booking::with(['user', 'event_id'])
-        //     ->latest()
-        //     ->limit(10)
-        //     ->get();
-
-        // $recentBookings = Booking::with(['user', 'event']); // correct
-        $recentBookings = Booking::all(); // correct
-
-
+        $recentBookings = Booking::all();
         return view('admin.dashboard', compact('stats', 'recentBookings'));
     }
     // Покажем форму создания организатора
@@ -38,9 +29,7 @@ class AdminController extends Controller
         $users = User::whereDoesntHave('organizer')
             ->where('role', '!=', 'admin')
             ->get();
-
         $selectedUserId = $request->input('user_id');
-
         return view('components.admin.organizers.create', [
             'users' => $users,
             'selectedUserId' => $selectedUserId
@@ -58,11 +47,9 @@ class AdminController extends Controller
             'contact_info' => 'required|string|max:255',
             'logo' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-
         // Обновляем роль пользователя
         $user = User::find($validated['user_id']);
         $user->update(['role' => 'organizer']);
-
         // Создаем организатора
         $organizerData = [
             'user_id' => $validated['user_id'],
@@ -72,13 +59,11 @@ class AdminController extends Controller
             'contact_info' => $validated['contact_info'],
             'is_verified' => true, // Админ создает - сразу верифицируем
         ];
-
         // Обработка логотипа
         if ($request->hasFile('logo')) {
             $path = $request->file('logo')->store('organizers/logos', 'public');
             $organizerData['logo_url'] = $path;
         }
-
         Organizer::create($organizerData);
 
         return redirect()->route('admin.users.index')
@@ -96,23 +81,6 @@ class AdminController extends Controller
         $organizers = Organizer::all(); // Или другой запрос для получения организаторов
         return view('components.admin.events.create', compact('organizers'));
     }
-
-    // public function eventsStore(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'title' => 'required|max:255',
-    //         'start_datetime' => 'required|date',
-    //         'end_datetime' => 'nullable|date|after:start_datetime',
-    //         'location' => 'nullable|string',
-    //         'description' => 'nullable|string',
-    //         'organizer_id' => 'required|exists:organizers,organizer_id'
-    //     ]);
-
-    //     Event::create($validated);
-
-    //     return redirect()->route('admin.events.index')
-    //         ->with('success', 'Мероприятие создано');
-    // }
 
     public function eventsStore(Request $request)
     {
@@ -151,35 +119,6 @@ class AdminController extends Controller
                 ->with('error', 'Ошибка: ' . $e->getMessage());
         }
     }
-    // public function eventsStore(Request $request)
-    // {
-    //     $validated = $request->validate([
-    //         'title' => 'required|max:255',
-    //         'booking_type' => 'required|in:general,seated',
-    //         'start_datetime' => 'required|date',
-    //          'end_datetime' => 'nullable|date|after:start_datetime',
-    //          'category' => 'concert',
-    //         'location' => 'nullable|string',
-    //         'description' => 'nullable|string',
-    //         'organizer_id' => 'required|exists:organizers,organizer_id',
-    //                 'is_published' => 0,
-    //         'is_free' => 0,
-    //         'is_featured' => 0,
-    //         'price' => 0,
-    //         'is_booking' => 1,
-    //         'link' => ''
-    //     ]);
-
-    //     $event = Event::create($validated);
-
-    //     if ($request->booking_type === 'seated' && $request->has('seats')) {
-    //         $this->createSeatsForEvent($event, $request->seats);
-    //     }
-
-    //     return redirect()->route('admin.events.index')
-    //         ->with('success', 'Мероприятие создано');
-    // }
-
     protected function createSeatsForEvent(Event $event, array $seatsData)
     {
         foreach ($seatsData as $seatStr) {
@@ -216,61 +155,35 @@ class AdminController extends Controller
     }
 
     // Бронирования
-    // public function bookingsIndex()
-    // {
-    //     $bookings = Booking::with(['user', 'event'])
-    //         ->latest()
-    //         ->paginate(15);
-
-    //     return view('components.admin.bookings.index', compact('bookings'));
-    // }
     public function bookingsIndex()
     {
-        // $bookings = Booking::with([
-        //     'user' => function ($query) {
-        //         $query;
-        //     },
-        //     'event' => function ($query) {
-        //         $query;
-        //     }
-        // ])
-        //     ->latest()
-        //     ->paginate(15);
-
         $bookings = Booking::all(); // correct
-
-
         return view('components.admin.bookings.index', compact('bookings'));
     }
     public function bookingsShow(Booking $booking)
     {
         return view('components.admin.bookings.show', compact('booking'));
     }
-
     public function bookingsCancel(Booking $booking)
     {
         $booking->update(['status' => 'cancelled']);
         return back()->with('success', 'Бронирование отменено');
     }
-
     public function bookingsDestroy(Booking $booking)
     {
         $booking->delete();
         return back()->with('success', 'Бронирование удалено');
     }
-
     // Пользователи
     public function usersIndex()
     {
         $users = User::latest()->paginate(15);
         return view('components.admin.users.index', compact('users'));
     }
-
     public function usersEdit(User $user)
     {
         return view('components.admin.users.edit', compact('user'));
     }
-
     public function usersUpdate(Request $request, User $user)
     {
         $validated = $request->validate([
@@ -283,13 +196,11 @@ class AdminController extends Controller
 
         return back()->with('success', 'Данные пользователя обновлены');
     }
-
     public function usersDestroy(User $user)
     {
         $user->delete();
         return back()->with('success', 'Пользователь удален');
     }
-
     // Настройки
     public function settings()
     {
@@ -297,7 +208,6 @@ class AdminController extends Controller
     }
     public function updateSettings(Request $request)
     {
-        // Логика обновления настроек
         return back()->with('success', 'Настройки обновлены');
     }
 }

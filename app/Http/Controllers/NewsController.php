@@ -11,7 +11,8 @@ class NewsController extends Controller
 {
     $query = News::query()->orderByDesc('is_pinned')->orderByDesc('created_at');
 
-    if ($request->has('category') && in_array($request->category, ['announcements', 'reports', 'interviews', 'reviews'])) {
+    if ($request->has('category') && in_array($request->category,
+     ['announcements', 'reports', 'interviews', 'reviews'])) {
         $query->where('category', $request->category);
     }
 
