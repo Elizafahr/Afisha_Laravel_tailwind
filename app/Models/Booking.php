@@ -5,12 +5,14 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 
 class Booking extends Model
 {
-    use HasFactory ;
-
-      protected $primaryKey = 'booking_id';
+    use HasFactory;
+    protected $table = 'Bookings';
+    protected $primaryKey = 'booking_id'; // Указываем первичный ключ
+    public $incrementing = true;
 
     protected $fillable = [
         'user_id',
@@ -20,7 +22,7 @@ class Booking extends Model
         'total_price',
         'status',
         'payment_method',
-        'booking_code'
+        // 'booking_code'
     ];
     protected $casts = [
         'total_price' => 'decimal:2',
@@ -39,16 +41,37 @@ class Booking extends Model
         return $this->belongsTo(User::class, 'user_id', 'user_id');
     }
 
-   public function event()
+    public function event()
+    {
+        return $this->belongsTo(Event::class, 'event_id', 'event_id');
+    }
+public function seats()
 {
-    return $this->belongsTo(Event::class, 'event_id', 'event_id');
+    return $this->hasMany(Seat::class, 'booking_id');
 }
-
     public function ticket()
     {
         return $this->belongsTo(Ticket::class, 'ticket_id', 'ticket_id');
     }
+    // В модели Booking
+    protected static function booted()
+    {
+        static::creating(function ($booking) {
+            // Автоматически устанавливаем event_id, если не задан
+            if (empty($booking->event_id)) {
+                if ($booking->ticket) {
+                    $booking->event_id = $booking->ticket->event_id;
+                } elseif ($booking->seat) {
+                    $booking->event_id = $booking->seat->event_id;
+                }
+            }
 
+            // Генерация уникального кода бронирования
+            // if (empty($booking->booking_code)) {
+            //     $booking->booking_code = strtoupper(Str::random(8));
+            // }
+        });
+    }
     public function seat()
     {
         return $this->belongsTo(Seat::class, 'seat_id', 'seat_id');

@@ -5,9 +5,12 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\Booking;
+use App\Models\Ticket;
 use App\Models\Organizer;
+use App\Models\Seat;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class OrganizerController extends Controller
 {
@@ -62,20 +65,50 @@ class OrganizerController extends Controller
             })->count();
         return view('organizer.dashboard', compact('events', 'totalBookings', 'organizer'));
     }
-    public function bookings()
-    {
-        $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
+  public function bookings()
+{
+    $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
 
-        $bookings = Booking::whereHas('ticket.event', function ($query) use ($organizer) {
-            $query->where('organizer_id', $organizer->id);
+    $bookings = Booking::whereHas('event', function ($query) use ($organizer) {
+            $query->where('organizer_id', $organizer->organizer_id);
         })
-            ->orWhereHas('seat.event', function ($query) use ($organizer) {
-                $query->where('organizer_id', $organizer->id);
-            })
-            ->with(['ticket.event', 'seat.event', 'user'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        ->with(['ticket.event', 'seat.event', 'user', 'event'])
+        ->whereIn('status', ['pending', 'confirmed']) // Only active bookings
+        ->orderBy('created_at', 'desc')
+        ->paginate(10);
 
-        return view('organizer.events.bookings', compact('bookings'));
+    return view('organizer.events.bookings', compact('bookings'));
+}
+public function cancelBooking(Booking $booking)
+{
+    // Verify the booking belongs to organizer's events
+    $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
+
+    $isOrganizerBooking = $booking->event && $booking->event->organizer_id == $organizer->id;
+
+
+    DB::beginTransaction();
+    try {
+        // Update booking status
+        $booking->update(['status' => 'cancelled']);
+
+        // Release seats if any
+        if ($booking->seat_id) {
+            Seat::where('seat_id', $booking->seat_id)
+                ->update(['is_reserved' => 0]);
+        }
+
+        // Return tickets if any
+        if ($booking->ticket_id) {
+            Ticket::where('ticket_id', $booking->ticket_id)
+                ->increment('quantity_available', $booking->quantity);
+        }
+
+        DB::commit();
+        return back()->with('success', 'Booking cancelled successfully');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Failed to cancel booking: ' . $e->getMessage());
     }
+}
 }

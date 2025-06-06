@@ -60,9 +60,8 @@
                         @endif
 
                         <div class="d-grid gap-2">
-
-                            <a href=" " class="btn btn-outline-primary">
-                                Вернуться к мероприятию
+                            <a href="{{ route('profile.show', Auth::id()) }}" class="btn btn-outline-primary">
+                                К бронированиям
                             </a>
                         </div>
                     </div>

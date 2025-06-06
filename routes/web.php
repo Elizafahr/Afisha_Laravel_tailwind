@@ -89,13 +89,16 @@ Route::get('/for-organizers', function () {
 // Бронирования
 Route::middleware('auth')->controller(BookingController::class)->group(function () {
     Route::get('/events/{event}/book', 'create')->name('bookings.create');
-     Route::post('/events/{event}/bookings', 'store')->name('bookings.store');
-
-    Route::post('/events/{event}/book-seats', [BookingController::class, 'bookSeats'])
-        ->name('bookings.bookSeats')
-        ->middleware('auth');
+      Route::post('/events/{event}/bookings', 'store')->name('bookings.store');
+Route::delete('/bookings/{booking}/cancel', [BookingController::class, 'cancel'])
+    ->name('bookings.cancel');
+    // Route::post('/events/{event}/book-seats', [BookingController::class, 'bookSeats'])
+    //     ->name('bookings.bookSeats')
+    //     ->middleware('auth');
     Route::get('/bookings/{booking}', 'show')->name('bookings.show');
 });
+
+Route::post('/events/{event}/bookings', [BookingController::class, 'store'])->name('bookings.store');
 // Админка
 Route::prefix('admin')->middleware('auth')->controller(AdminController::class)->group(function () {
     // Главная панель
@@ -146,6 +149,9 @@ Route::prefix('organizer')->group(function () {
     Route::get('events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('organizer.events.edit');
     Route::delete('events/{event}', [OrganizerEventController::class, 'destroy'])->name('organizer.events.destroy');
     Route::put('events/{event}', [OrganizerEventController::class, 'update'])->name('organizer.events.update');
+
+   Route::delete('/bookings/{booking}/cancel', [OrganizerController::class, 'cancelBooking'])
+        ->name('organizer.bookings.cancel');
 });
 Route::get('events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('organizer.events.edit');
 Route::put('events/{event}', [OrganizerEventController::class, 'update'])->name('organizer.events.update');

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
+
     <div class="container py-5">
         <div class="row justify-content-center">
             <div class="col-md-8">
@@ -37,26 +38,30 @@
                                 </div>
                             @endif
 
-                            @if ($event->booking_type === 'seated')
-                                <!-- Блок выбора мест для мероприятий с рассадкой -->
+                            @if ($event->isSeated())
                                 <div class="mb-6">
                                     <h3 class="text-lg font-medium mb-4">Выберите места</h3>
                                     <div class="seating-map">
                                         @foreach ($event->seats->groupBy('zone') as $zone => $seats)
                                             <div class="zone mb-8">
                                                 <h4 class="text-md font-semibold mb-4">Зона {{ $zone }}</h4>
+
                                                 <div class="stage mb-4 text-center text-gray-600 font-medium">СЦЕНА</div>
+
                                                 <div class="seating-grid">
                                                     <div class="grid grid-cols-12 gap-1 mb-1">
                                                         <div class="col-header"></div>
                                                         @foreach (range(1, $seats->groupBy('number')->count()) as $col)
-                                                            <div class="text-center text-xs font-medium">{{ $col }}</div>
+                                                            <div class="text-center text-xs font-medium">{{ $col }}
+                                                            </div>
                                                         @endforeach
                                                     </div>
 
                                                     @foreach ($seats->groupBy('row') as $row => $rowSeats)
                                                         <div class="grid grid-cols-12 gap-1 mb-1">
-                                                            <div class="row-label text-center font-medium self-center">Ряд {{ $row }}</div>
+                                                            <div class="row-label text-center font-medium self-center">Ряд
+                                                                {{ $row }}</div>
+
                                                             @foreach ($rowSeats->sortBy('number') as $seat)
                                                                 <div class="seat w-8 h-8 flex items-center justify-center rounded cursor-pointer text-sm
                                                                     {{ $seat->is_reserved ? 'bg-red-500 cursor-not-allowed' : 'bg-green-200 hover:bg-green-300' }}
@@ -73,45 +78,43 @@
                                             </div>
                                         @endforeach
                                     </div>
-
-                                    <!-- Блок выбранных мест (только для мероприятий с рассадкой) -->
-                                    <input type="hidden" id="selected_seats" name="selected_seats" value="">
-                                    <div class="mb-3">
-                                        <h5>Выбранные места:</h5>
-                                        <div id="selected-seats-list" class="mb-3"></div>
-                                        <p>Общее количество: <span id="selected-seats-count">0</span></p>
-                                        <input type="hidden" id="quantity" name="quantity" value="1">
-                                    </div>
                                 </div>
                             @else
-                                <!-- Блок для мероприятий без мест (general admission) -->
+                                <!-- Выбор места -->
+                                @if ($seats->isNotEmpty())
+                                    <div class="mb-3">
+                                        <label for="seat_id" class="form-label">Выберите место</label>
+                                        <select class="form-select" id="seat_id" name="seat_id">
+                                            <option value="">Без места (общий вход)</option>
+                                            @foreach ($seats as $seat)
+                                                <option value="{{ $seat->id }}"
+                                                    data-multiplier="{{ $seat->price_multiplier }}">
+                                                    {{ $seat->zone }}, ряд {{ $seat->seat_row }}, место
+                                                    {{ $seat->seat_number }}
+                                                    (x{{ $seat->price_multiplier }})
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                @endif
+
+                            @endif
+                            @if ($event->isSeated())
+
+                            <!-- Скрытое поле для хранения выбранных мест -->
+                            <input type="hidden" id="selected_seats" name="selected_seats" value="">
+
+                                <!-- Информация о выбранных местах -->
                                 <div class="mb-3">
-                                    <label for="quantity" class="form-label">Количество билетов</label>
-                                    <input type="number" class="form-control" id="quantity" name="quantity"
-                                           min="1" max="10" value="1" onchange="calculateTotal()">
+                                    <h5>Выбранные места:</h5>
+                                    <div id="selected-seats-list" class="mb-3"></div>
+                                    <p>Общее количество: <span id="selected-seats-count">0</span></p>
+                                    <input type="hidden" id="quantity" name="quantity" value="1">
                                 </div>
                             @endif
-
                             <!-- Итоговая цена -->
                             <div class="mb-3">
                                 <h4>Итоговая цена: <span id="total-price">{{ $event->price }}</span> ₽</h4>
-                            </div>
-
-                            <!-- Выбор способа оплаты -->
-                            <div class="mb-3">
-                                <label class="form-label">Способ оплаты</label>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="payment_card" value="card" checked>
-                                    <label class="form-check-label" for="payment_card">
-                                        Банковская карта
-                                    </label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="payment_method" id="payment_cash" value="cash">
-                                    <label class="form-check-label" for="payment_cash">
-                                        Наличные при получении
-                                    </label>
-                                </div>
                             </div>
 
                             <div class="d-grid gap-2">
@@ -125,15 +128,6 @@
             </div>
         </div>
     </div>
-@if ($errors->any())
-    <div class="alert alert-danger">
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const eventPrice = {{ $event->price }};
@@ -165,12 +159,8 @@
             quantityInput?.addEventListener('change', calculateTotal);
             ticketSelect?.addEventListener('change', calculateTotal);
             seatSelect?.addEventListener('change', calculateTotal);
-
-            // Инициализация расчета при загрузке
-            calculateTotal();
         });
 
-        @if ($event->booking_type === 'seated')
         let selectedSeats = [];
 
         function selectSeat(element, seatId, price) {
@@ -194,11 +184,57 @@
             updateSelectedSeats();
         }
 
+        // function updateSelectedSeats() {
+        //     const seatsInput = document.getElementById('selected_seats');
+        //     seatsInput.value = JSON.stringify(selectedSeats.map(seat => ({
+        //         id: seat.id,
+        //         price: seat.price
+        //     })));
+
+
+
+        //     seatsInput.value = JSON.stringify(selectedSeats);
+
+        //     const totalPriceElement = document.getElementById('total-price');
+        //     const selectedSeatsCount = document.getElementById('selected-seats-count');
+        //     const ticketSelect = document.getElementById('ticket_id');
+        //     const quantityInput = document.getElementById('quantity');
+
+        //     const selectedSeatsList = document.getElementById('selected-seats-list');
+        //     selectedSeatsList.innerHTML = selectedSeats.map(seat =>
+        //         `<div class="mb-2 p-2 bg-light rounded">Место ${seat.id}  </div>`
+        //     ).join('');
+
+        //     document.getElementById('selected-seats-count').textContent = selectedSeats.length;
+        //     document.getElementById('quantity').value = selectedSeats.length;
+
+        //     calculateTotal();
+        //     // Обновляем счетчик выбранных мест
+        //     const seatsCount = selectedSeats.length;
+        //     selectedSeatsCount.textContent = seatsCount;
+
+        //     // Устанавливаем количество билетов равным количеству выбранных мест
+        //     // Если мест не выбрано, оставляем 1 (для общих билетов)
+        //     quantityInput.value = seatsCount > 0 ? seatsCount : 1;
+
+        //     // Получаем базовую цену
+        //     let basePrice = {{ $event->price }};
+
+        //     // Если выбран тип билета, используем его цену
+        //     if (ticketSelect && ticketSelect.value) {
+        //         const selectedOption = ticketSelect.options[ticketSelect.selectedIndex];
+        //         basePrice = parseFloat(selectedOption.dataset.price);
+        //     }
+
+        //     // Рассчитываем итоговую цену
+        //     const totalPrice = basePrice * parseInt(quantityInput.value);
+        //     totalPriceElement.textContent = totalPrice.toFixed(2);
+        // }
+
+        // В шаблоне бронирования
         function updateSelectedSeats() {
             const seatsInput = document.getElementById('selected_seats');
             const selectedSeatsList = document.getElementById('selected-seats-list');
-            const selectedSeatsCount = document.getElementById('selected-seats-count');
-            const quantityInput = document.getElementById('quantity');
             const totalPriceElement = document.getElementById('total-price');
 
             // Формируем массив выбранных мест
@@ -209,19 +245,17 @@
 
             seatsInput.value = JSON.stringify(seatsData);
 
-            // Обновляем отображение выбранных мест
+            // Обновляем отображение
             selectedSeatsList.innerHTML = selectedSeats.map(seat =>
-                `<div class="mb-2 p-2 bg-light rounded">Место ${seat.id} - ${seat.price} ₽</div>`
+                `<div class="mb-2 p-2 bg-light rounded">Место ${seat.id} =</div>`
             ).join('');
 
-            // Обновляем счетчик
-            selectedSeatsCount.textContent = selectedSeats.length;
-            quantityInput.value = selectedSeats.length || 1;
-
-            // Пересчитываем общую стоимость
+            // Рассчитываем общую стоимость
             const totalPrice = selectedSeats.reduce((sum, seat) => sum + (seat.price || {{ $event->price }}), 0);
             totalPriceElement.textContent = totalPrice.toFixed(2);
+
+            // Обновляем количество
+            document.getElementById('quantity').value = selectedSeats.length || 1;
         }
-        @endif
     </script>
 @endsection

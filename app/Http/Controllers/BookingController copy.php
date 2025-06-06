@@ -201,188 +201,42 @@ class BookingController extends Controller
     //     }
     // }
 
-    // В BookingController
-    // public function store(Request $request, Event $event)
-    // {
 
-    //     // // Проверка авторизации
-    //     // if (!auth()->check()) {
-    //     //     return redirect()->route('login');
-    //     // }
+public function cancel(Booking $booking)
+{
+    // Проверка прав пользователя
+    if ($booking->user_id !== auth()->id()) {
+        abort(403);
+    }
 
-    //     // // Валидация в зависимости от типа мероприятия
-    //     // $rules = [
-    //     //     'quantity' => 'required|integer|min:1'
-    //     // ];
+    // Проверка возможности отмены
+    if (!in_array($booking->status, ['pending', 'confirmed'])) {
+        return back()->with('error', 'Это бронирование нельзя отменить');
+    }
 
-    //     // if ($event->booking_type === 'seated') {
-    //     //     $rules['selected_seats'] = 'required|json';
-    //     // } else {
-    //     //     $rules['ticket_id'] = 'nullable|exists:tickets,ticket_id';
-    //     // }
+    DB::beginTransaction();
+    try {
+        // Освобождаем места
+        if ($booking->seats->isNotEmpty()) {
+            Seat::where('booking_id', $booking->booking_id)
+                ->update(['is_reserved' => false, 'booking_id' => null]);
+        }
 
-    //     // $validated = $request->validate($rules);
-    //     // \Log::debug('Данные бронирования:', [
-    //     //     'user' => auth()->id(),
-    //     //     'data' => $request->all(),
-    //     //     'seats' => $request->selected_seats ? json_decode($request->selected_seats) : null
-    //     // ]);
-    //     // DB::beginTransaction();
-    //     // try {
-    //     //     // Для мероприятий с рассадкой
-    //     //     if ($event->booking_type === 'seated') {
-    //     //         $selectedSeats = json_decode($request->selected_seats, true);
+        // Возвращаем билеты
+        if ($booking->ticket) {
+            $booking->ticket->increment('quantity_available', $booking->quantity);
+        }
 
-    //     //         // Проверка доступности мест
-    //     //         $seats = Seat::whereIn('seat_id', array_column($selectedSeats, 'id'))
-    //     //             ->where('event_id', $event->event_id)
-    //     //             ->where('is_reserved', false)
-    //     //             ->get();
+        // Обновляем статус бронирования
+        $booking->update(['status' => 'cancelled']);
 
-    //     //         if ($seats->count() !== count($selectedSeats)) {
-    //     //             throw new \Exception('Некоторые места уже заняты');
-    //     //         }
-
-    //     //         // Создание бронирования
-    //     //         $booking = Booking::create([
-    //     //             'user_id' => auth()->id(),
-    //     //             'event_id' => $event->event_id,
-    //     //             'quantity' => count($selectedSeats),
-    //     //             'total_price' => $event->price * count($selectedSeats),
-    //     //             'status' => 'confirmed',
-    //     //         ]);
-
-    //     //         // Резервирование мест
-    //     //         Seat::whereIn('seat_id', $seats->pluck('seat_id'))
-    //     //             ->update([
-    //     //                 'is_reserved' => true,
-    //     //                 'booking_id' => $booking->booking_id
-    //     //             ]);
-    //     //     }
-    //     //     // Для мероприятий без рассадки
-    //     //     else {
-    //     //         $ticket = null;
-    //     //         $price = $event->price;
-
-    //     //         if ($request->ticket_id) {
-    //     //             $ticket = Ticket::findOrFail($request->ticket_id);
-    //     //             $price = $ticket->price;
-
-    //     //             if ($ticket->quantity_available < $request->quantity) {
-    //     //                 throw new \Exception('Недостаточно доступных билетов');
-    //     //             }
-    //     //         }
-
-    //     //         $booking = Booking::create([
-    //     //             'user_id' => auth()->id(),
-    //     //             'event_id' => $event->event_id,
-    //     //             'ticket_id' => $request->ticket_id,
-    //     //             'quantity' => $request->quantity,
-    //     //             'total_price' => $price * $request->quantity,
-    //     //             'status' => 'confirmed',
-    //     //         ]);
-
-    //     //         if ($ticket) {
-    //     //             $ticket->decrement('quantity_available', $request->quantity);
-    //     //         }
-    //     //     }
-
-    //     //     DB::commit();
-    //     //     return redirect()->route('bookings.show', $booking)
-    //     //         ->with('success', 'Бронирование успешно завершено!');
-    //     // } catch (\Exception $e) {
-    //     //     DB::rollBack();
-    //     //     return back()->with('error', 'Ошибка при бронировании: ' . $e->getMessage());
-    //     // }
-
-
-    //     // Валидация в зависимости от типа мероприятия
-    //     $rules = [
-    //         // 'quantity' => 'required|integer|min:1'
-    //     ];
-
-    //     if ($event->booking_type === 'seated') {
-    //         $rules['selected_seats'] = 'required|json';
-    //     } else {
-    //         $rules['ticket_id'] = 'nullable|exists:tickets,ticket_id';
-    //     }
-
-    //     $validated = $request->validate($rules);
-    //     // \Log::debug('Данные бронирования:', [
-    //     //     'user' => auth()->id(),
-    //     //     'data' => $request->all(),
-    //     //     'seats' => $request->selected_seats ? json_decode($request->selected_seats) : null
-    //     // ]);
-    //     // DB::beginTransaction();
-    //          // Для мероприятий с рассадкой
-    //         if ($event->booking_type === 'seated') {
-    //             $selectedSeats = json_decode($request->selected_seats, true);
-
-    //             // Проверка доступности мест
-    //             $seats = Seat::whereIn('seat_id', array_column($selectedSeats, 'id'))
-    //                 ->where('event_id', $event->event_id)
-    //                 ->where('is_reserved', false)
-    //                 ->get();
-
-    //             if ($seats->count() !== count($selectedSeats)) {
-    //                 throw new \Exception('Некоторые места уже заняты');
-    //             }
-
-    //             // Создание бронирования
-    //             $booking = Booking::create([
-    //                 'user_id' => auth()->id(),
-    //                 'event_id' => $event->event_id,
-    //                 'quantity' => count($selectedSeats),
-    //                 // 'total_price' => $event->price * count($selectedSeats),
-    //                 'total_price' => 11,
-    //                 'status' => 'pending',
-    //                 'payment_method'=>'cash',
-
-    //             ]);
-
-    //             // Резервирование мест
-    //             Seat::whereIn('seat_id', $seats->pluck('seat_id'))
-    //                 ->update([
-    //                     'is_reserved' => true,
-    //                     'booking_id' => $booking->booking_id
-    //                 ]);
-    //         }
-    //         // Для мероприятий без рассадки
-    //         else {
-    //             $ticket = null;
-    //             $price = $event->price;
-
-    //             if ($request->ticket_id) {
-    //                 $ticket = Ticket::findOrFail($request->ticket_id);
-    //                 $price = $ticket->price;
-
-    //                 if ($ticket->quantity_available < $request->quantity) {
-    //                     throw new \Exception('Недостаточно доступных билетов');
-    //                 }
-    //             }
-
-    //             $booking = Booking::create([
-    //                 'user_id' => auth()->id(),
-    //                 'event_id' => $event->event_id,
-    //                 'ticket_id' => $request->ticket_id,
-    //                 'quantity' => $request->quantity,
-    //                // 'total_price' => $event->price * count($selectedSeats),
-    //                 'total_price' => 11,
-    //                 'status' => 'pending',
-    //                 'payment_method'=>'cash',
-
-    //             ]);
-
-    //             if ($ticket) {
-    //                 $ticket->decrement('quantity_available', $request->quantity);
-    //             }
-    //         }
-
-
-
-    // }
-
-
+        DB::commit();
+        return back()->with('success', 'Бронирование успешно отменено');
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return back()->with('error', 'Произошла ошибка при отмене бронирования');
+    }
+}
     public function store(Request $request, Event $event)
     {
         // Валидация в зависимости от типа мероприятия
@@ -532,39 +386,4 @@ class BookingController extends Controller
             return back()->with('error', 'Ошибка при бронировании: ' . $e->getMessage());
         }
     }
-    public function cancel(Booking $booking)
-{
-    // Проверка прав пользователя
-    if ($booking->user_id !== auth()->id()) {
-        abort(403);
-    }
-
-    // Проверка возможности отмены
-    if (!in_array($booking->status, ['pending', 'confirmed'])) {
-        return back()->with('error', 'Это бронирование нельзя отменить');
-    }
-
-    DB::beginTransaction();
-    try {
-        // Освобождаем места
-        if ($booking->seats->isNotEmpty()) {
-            Seat::where('booking_id', $booking->booking_id)
-                ->update(['is_reserved' => false, 'booking_id' => null]);
-        }
-
-        // Возвращаем билеты
-        if ($booking->ticket) {
-            $booking->ticket->increment('quantity_available', $booking->quantity);
-        }
-
-        // Обновляем статус бронирования
-        $booking->update(['status' => 'cancelled']);
-
-        DB::commit();
-        return back()->with('success', 'Бронирование успешно отменено');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Произошла ошибка при отмене бронирования');
-    }
-}
 }

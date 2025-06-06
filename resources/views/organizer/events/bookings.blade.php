@@ -1,61 +1,92 @@
 @extends('organizer.layout')
 
 @section('content')
-<div class="card">
-    <div class="card-header">
-        <h5>Bookings Management</h5>
-    </div>
-    <div class="card-body">
-        @if($bookings->isEmpty())
-            <div class="alert alert-info">No bookings found.</div>
-        @else
+<div class="container py-4">
+    <h2 class="mb-4">Активные бронирования</h2>
+
+    @if(session('success'))
+        <div class="alert alert-success">
+            {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger">
+            {{ session('error') }}
+        </div>
+    @endif
+
+    <div class="card">
+        <div class="card-body">
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th>Booking ID</th>
-                            <th>Event</th>
-                            <th>User</th>
-                            <th>Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>ID брони</th>
+                            <th>Мероприятие</th>
+                            <th>Пользователь</th>
+                            <th>Детали</th>
+                            <th>Статус</th>
+                            <th>Общая стоимость</th>
+                            <th>Дата</th>
+                            <th>Действия</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($bookings as $booking)
+                        @forelse($bookings as $booking)
                         <tr>
-                            <td>{{ $booking->id }}</td>
+                            <td>#{{ $booking->booking_id }}</td>
                             <td>
                                 @if($booking->event)
                                     {{ $booking->event->title }}
-                                @elseif($booking->ticket && $booking->ticket->event)
-                                    {{ $booking->ticket->event->title }}
-                                @elseif($booking->seat && $booking->seat->event)
-                                    {{ $booking->seat->event->title }}
                                 @else
-                                    Event deleted
+                                    Мероприятие удалено
                                 @endif
                             </td>
-                            <td>{{ $booking->user->name ?? 'Guest' }}</td>
-                            <td>{{ $booking->created_at->format('d M Y H:i') }}</td>
+                            <td>{{ $booking->user->username }}</td>
                             <td>
-                                <span class="badge bg-{{ $booking->status === 'confirmed' ? 'success' : 'warning' }}">
-                                    {{ ucfirst($booking->status) }}
+                                @if($booking->ticket)
+                                    {{ $booking->ticket->ticket_type }} (x{{ $booking->quantity }})
+                                @elseif($booking->seat)
+                                    Место: {{ $booking->seat->zone }} - Ряд {{ $booking->seat->seat_row }}, {{ $booking->seat->seat_number }}
+                                @else
+                                    Общий вход (x{{ $booking->quantity }})
+                                @endif
+                            </td>
+                            <td>
+                                <span class="badge
+                                    @if($booking->status == 'confirmed') bg-success
+                                    @elseif($booking->status == 'pending') bg-warning text-dark
+                                    @endif">
+                                    {{ ucfirst($booking->status == 'confirmed' ? 'подтверждено' : 'ожидание') }}
                                 </span>
                             </td>
+                            <td>{{ number_format($booking->total_price, 2) }} ₽</td>
+                            <td>{{ $booking->created_at->format('d.m.Y H:i') }}</td>
                             <td>
-                                <a href="#" class="btn btn-sm btn-primary">View</a>
+                                <form action="{{ route('organizer.bookings.cancel', $booking) }}" method="POST" class="d-inline">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger"
+                                        onclick="return confirm('Вы уверены, что хотите отменить это бронирование?')">
+                                        Отменить
+                                    </button>
+                                </form>
                             </td>
                         </tr>
-                        @endforeach
+                        @empty
+                        <tr>
+                            <td colspan="8" class="text-center">Активных бронирований не найдено</td>
+                        </tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>
 
-            <div class="mt-3">
+            <div class="d-flex justify-content-center mt-4">
                 {{ $bookings->links() }}
             </div>
-        @endif
+        </div>
     </div>
 </div>
 @endsection
