@@ -18,11 +18,12 @@ class AdminEventController extends Controller
     }
     public function create()
     {
-          $organizers = Organizer::all(); // Или любой другой запрос
+        $organizers = Organizer::all(); // Или любой другой запрос
         return view('organizer.events.create', [
             'title' => 'Создание мероприятия',
             'organizers' =>  $organizers
-        ]);}
+        ]);
+    }
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -62,7 +63,7 @@ class AdminEventController extends Controller
         $event->is_published = $validated['is_published'] ?? 0; // По умолчанию не опубликовано
         $event->is_booking = $validated['is_booking'] ?? 1; // По умолчанию бронирование разрешено
         // $event->organizer_id = $validated['organizer_id'];
-        $event->organizer_id = 3;
+        $event->organizer_id = $validated['organizer_id'];
         $event->booking_type = $validated['booking_type'];
         $event->link = $validated['link'] ?? null;
         $event->save();
@@ -82,8 +83,7 @@ class AdminEventController extends Controller
     }
     public function update(Request $request, Event $event)
     {
-        $validated = $request->validate([
-        ]);
+        $validated = $request->validate([]);
         $event->update($validated);
         // Обновление изображения
         if ($request->hasFile('image')) {
@@ -98,4 +98,37 @@ class AdminEventController extends Controller
         $event->delete();
         return back()->with('success', 'Мероприятие удалено');
     }
+     protected function generateSeats(Event $event, $rows, $columns)
+    {
+        $seats = [];
+        $zones = ['Партер', 'Балкон', 'Ложа'];
+
+        for ($row = 1; $row <= $rows; $row++) {
+            $zone = $zones[0];
+            if ($row > $rows * 0.7) {
+                $zone = $zones[1];
+            } elseif ($row <= $rows * 0.2) {
+                $zone = $zones[2];
+            }
+
+            $priceMultiplier = 1.0;
+            if ($zone === 'Ложа') $priceMultiplier = 2.0;
+            elseif ($zone === 'Партер') $priceMultiplier = 1.5;
+
+            for ($col = 1; $col <= $columns; $col++) {
+                $seats[] = [
+                    'event_id' => $event->event_id,
+                    'seat_number' => chr(64 + $row) . $col,
+                    'zone' => $zone,
+                    'seat_row' => $row,
+                    'is_reserved' => 0,
+                    'price_multiplier' => $priceMultiplier,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+        }
+        DB::table('Seats')->insert($seats);
+    }
+
 }
