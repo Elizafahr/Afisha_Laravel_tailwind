@@ -13,7 +13,7 @@
 
           <!-- Основное меню -->
             <nav class="hidden md:flex space-x-8">
-                <a href="/" class="text-gray-700 hover:text-red-600 font-medium">Афиша</a>
+                <a href="/events" class="text-gray-700 hover:text-red-600 font-medium">Афиша</a>
                 <a href="{{ route('venues.index') }}" class="text-gray-700 hover:text-red-600 font-medium">Места</a>
                 <a href="{{ route('organizers.index') }}" class="text-gray-700 hover:text-red-600 font-medium">Организаторы</a>
                 <a href="{{ route('news.index') }}" class="text-gray-700 hover:text-red-600 font-medium">Новости</a>

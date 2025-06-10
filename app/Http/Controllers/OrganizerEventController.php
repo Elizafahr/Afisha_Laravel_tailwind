@@ -50,8 +50,17 @@ class OrganizerEventController extends Controller
             'link' => 'nullable|url'
         ]);
         $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
-        $posterUrl = $validated['poster'] ?? null;
+   $posterUrl = $validated['poster'] ?? null;
 
+    // Обработка загрузки файла постера
+    if ($request->hasFile('poster_file')) {
+        $file = $request->file('poster_file');
+        $fileName = time() . '_' . $file->getClientOriginalName();
+
+        // Сохраняем файл в public/images
+        $file->move(public_path('images'), $fileName);
+        $posterUrl = '/images/' . $fileName;
+    }
         // Создаем мероприятие
         $event = new Event();
         $event->title = $validated['title'];
@@ -61,7 +70,7 @@ class OrganizerEventController extends Controller
         $event->end_datetime = $validated['end_datetime'];
         $event->location = $validated['location'];
         $event->age_restriction = $validated['age_restriction'] ?? null;
-        $event->poster = $posterUrl;
+        $event->poster = $request->poster_file;
         $event->is_free = $validated['is_free'] ?? 0; // По умолчанию 0 (платное)
         $event->price = $validated['price'] ?? 0;
         $event->is_published = $validated['is_published'] ?? 0; // По умолчанию не опубликовано
@@ -71,10 +80,7 @@ class OrganizerEventController extends Controller
         $event->link = $validated['link'] ?? null;
         $event->save();
 
-        if ($request->hasFile('poster_file')) {
-            $path = $request->file('poster_file')->store('event_posters', 'public');
-            $posterUrl = Storage::url($path);
-        }
+
         if ($request->booking_type === 'seated') {
             $this->generateSeats($event, $request->rows, $request->columns);
         }

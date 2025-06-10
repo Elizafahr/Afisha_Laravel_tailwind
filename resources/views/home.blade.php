@@ -174,7 +174,7 @@
     <section class="mb-12">
         <div class="flex justify-between items-center mb-6">
             <h2 class="text-2xl font-bold text-gray-800">Новости и анонсы</h2>
-            <a href="#" class="text-red-600 hover:text-red-800 font-medium">
+            <a href="/news" class="text-red-600 hover:text-red-800 font-medium">
                 Все новости <i class="fas fa-arrow-right ml-1"></i>
             </a>
         </div>
@@ -188,7 +188,7 @@
                         <div class="text-sm text-gray-500 mb-2">{{ $item->created_at->format('d.m.Y') }}</div>
                         <h3 class="font-bold text-lg mb-2">{{ $item->title }}</h3>
                         <p class="text-gray-600 mb-3 line-clamp-2">{{ $item->excerpt }}</p>
-                        <a href="#" class="text-red-600 hover:text-red-800 font-medium">Читать далее...</a>
+                        <a href="/news" class="text-red-600 hover:text-red-800 font-medium">Читать далее...</a>
                     </div>
                 </div>
             @endforeach
