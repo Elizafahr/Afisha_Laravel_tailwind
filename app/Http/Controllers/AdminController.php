@@ -7,9 +7,10 @@ use App\Models\Booking;
 use App\Models\User;
 use App\Models\Organizer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 class AdminController extends Controller
 {
 
@@ -94,7 +95,7 @@ class AdminController extends Controller
             'end_datetime' => 'required|date|after:start_datetime',
             'location' => 'required|string',
             'age_restriction' => 'nullable|integer|min:0',
-            'poster' => 'nullable|url',
+            'poster_url' => 'nullable|url',
             'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_free' => 'nullable|in:0,1', // Принимает 0 или 1
             'price' => 'nullable|numeric|min:0|required_if:is_free,0',
@@ -103,11 +104,21 @@ class AdminController extends Controller
             'booking_type' => 'required|in:seated,general',
             'rows' => 'nullable|integer|min:1|required_if:booking_type,seated',
             'columns' => 'nullable|integer|min:1|required_if:booking_type,seated',
-            'link' => 'nullable|url',
-            'organizer_id' => 'required|exists:organizers,organizer_id',
-
+            'link' => 'nullable|url'
         ]);
-        $posterUrl = $validated['poster'] ?? null;
+        $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
+        $posterUrl = $validated['poster_url'] ?? null;
+
+
+        // Обработка загрузки файла постера
+        if ($request->hasFile('poster_file')) {
+            $file = $request->file('poster_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $fileName);
+            $posterUrl = $fileName; // Сохраняем только имя файла
+        }
+
+
         // Создаем мероприятие
         $event = new Event();
         $event->title = $validated['title'];
@@ -117,23 +128,22 @@ class AdminController extends Controller
         $event->end_datetime = $validated['end_datetime'];
         $event->location = $validated['location'];
         $event->age_restriction = $validated['age_restriction'] ?? null;
-        $event->poster = $posterUrl;
+        $event->poster = $posterUrl; // Сохраняем либо URL, либо путь к файлу
         $event->is_free = $validated['is_free'] ?? 0; // По умолчанию 0 (платное)
         $event->price = $validated['price'] ?? 0;
         $event->is_published = $validated['is_published'] ?? 0; // По умолчанию не опубликовано
         $event->is_booking = $validated['is_booking'] ?? 1; // По умолчанию бронирование разрешено
-        // $event->organizer_id = $validated['organizer_id'];
-        $event->organizer_id = $validated['organizer_id'];
+        $event->organizer_id = $organizer->organizer_id;
         $event->booking_type = $validated['booking_type'];
         $event->link = $validated['link'] ?? null;
         $event->save();
-        if ($request->hasFile('poster_file')) {
-            $path = $request->file('poster_file')->store('event_posters', 'public');
-            $posterUrl = Storage::url($path);
-        }
+
+
         if ($request->booking_type === 'seated') {
             $this->generateSeats($event, $request->rows, $request->columns);
         }
+
+
         return redirect()->route('admin.dashboard')
             ->with('success', 'Мероприятие успешно создано!');
     }
@@ -162,7 +172,7 @@ class AdminController extends Controller
     }
     public function eventsUpdate(Request $request, Event $event)
     {
-        $validated = $request->validate([
+         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category' => 'required|in:concert,festival,exhibition,theater',
@@ -185,16 +195,25 @@ class AdminController extends Controller
 
         // Обработка постера
         $posterUrl = $validated['poster_url'] ?? $event->poster_url;
-
-        if ($request->hasFile('poster_file')) {
-            // Удаляем старый файл, если он был
-            if ($event->poster_url && strpos($event->poster_url, 'storage/') !== false) {
-                $oldFile = str_replace('/storage/', '', $event->poster_url);
-                Storage::disk('public')->delete($oldFile);
+ // Удаление постера если отмечено
+        if ($request->has('remove_poster') && $request->remove_poster) {
+            if ($event->poster && strpos($event->poster, 'images/') === 0) {
+                $oldFilePath = public_path($event->poster);
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
             }
+            $posterUrl = null;
+        }
 
-            $path = $request->file('poster_file')->store('event_posters', 'public');
-            $posterUrl = Storage::url($path);
+        // Загрузка нового постера
+        if ($request->hasFile('poster_file')) {
+            // Удаляем старый файл если он существует
+
+            $file = $request->file('poster_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $fileName);
+            $posterUrl = $fileName; // Сохраняем только имя файла
         }
 
         // Обновляем данные мероприятия
@@ -230,8 +249,7 @@ class AdminController extends Controller
         }
 
         return redirect()->route('admin.events.index')
-            ->with('success', 'Мероприятие успешно обновлено!');
-    }
+            ->with('success', 'Мероприятие успешно обновлено!');}
 
     // Бронирования
     public function bookingsIndex()

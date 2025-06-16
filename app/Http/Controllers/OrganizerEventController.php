@@ -38,7 +38,7 @@ class OrganizerEventController extends Controller
             'end_datetime' => 'required|date|after:start_datetime',
             'location' => 'required|string',
             'age_restriction' => 'nullable|integer|min:0',
-            'poster' => 'nullable|url',
+            'poster_url' => 'nullable|url',
             'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'is_free' => 'nullable|in:0,1', // Принимает 0 или 1
             'price' => 'nullable|numeric|min:0|required_if:is_free,0',
@@ -50,17 +50,18 @@ class OrganizerEventController extends Controller
             'link' => 'nullable|url'
         ]);
         $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
-   $posterUrl = $validated['poster'] ?? null;
+        $posterUrl = $validated['poster_url'] ?? null;
 
-    // Обработка загрузки файла постера
-    if ($request->hasFile('poster_file')) {
-        $file = $request->file('poster_file');
-        $fileName = time() . '_' . $file->getClientOriginalName();
 
-        // Сохраняем файл в public/images
-        $file->move(public_path('images'), $fileName);
-        $posterUrl = '/images/' . $fileName;
-    }
+        // Обработка загрузки файла постера
+        if ($request->hasFile('poster_file')) {
+            $file = $request->file('poster_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $fileName);
+            $posterUrl = $fileName; // Сохраняем только имя файла
+        }
+
+
         // Создаем мероприятие
         $event = new Event();
         $event->title = $validated['title'];
@@ -70,7 +71,7 @@ class OrganizerEventController extends Controller
         $event->end_datetime = $validated['end_datetime'];
         $event->location = $validated['location'];
         $event->age_restriction = $validated['age_restriction'] ?? null;
-        $event->poster = $request->poster_file;
+        $event->poster = $posterUrl; // Сохраняем либо URL, либо путь к файлу
         $event->is_free = $validated['is_free'] ?? 0; // По умолчанию 0 (платное)
         $event->price = $validated['price'] ?? 0;
         $event->is_published = $validated['is_published'] ?? 0; // По умолчанию не опубликовано
@@ -139,40 +140,83 @@ class OrganizerEventController extends Controller
     public function update(Request $request, Event $event)
     {
         // Проверка прав доступа
-        if (auth()->user()->id !== $event->user_id) {
+        $organizer = Organizer::where('user_id', Auth::id())->firstOrFail();
+        if ($event->organizer_id !== $organizer->organizer_id) {
             abort(403, 'У вас нет прав для редактирования этого мероприятия');
         }
 
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
+            'category' => 'required|in:concert,festival,exhibition,theater',
             'start_datetime' => 'required|date',
             'end_datetime' => 'required|date|after:start_datetime',
-            'location' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'is_published' => 'boolean',
-            'remove_image' => 'boolean',
+            'location' => 'required|string',
+            'age_restriction' => 'nullable|integer|min:0',
+            'poster_url' => 'nullable|url',
+            'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_free' => 'nullable|in:0,1',
+            'price' => 'nullable|numeric|min:0|required_if:is_free,0',
+            'is_published' => 'nullable|in:0,1',
+            'is_booking' => 'nullable|in:0,1',
+            'booking_type' => 'required|in:seated,general',
+            'rows' => 'nullable|integer|min:1|required_if:booking_type,seated',
+            'columns' => 'nullable|integer|min:1|required_if:booking_type,seated',
+            'link' => 'nullable|url',
+            'remove_poster' => 'nullable|boolean'
         ]);
 
-        // Обработка изображения
-        if ($request->hasFile('image')) {
-            // Удаляем старое изображение, если есть
-            if ($event->image && Storage::exists('public/' . $event->image)) {
-                Storage::delete('public/' . $event->image);
-            }
+        // Обработка постера
+        $posterUrl = $validated['poster_url'] ?? $event->poster;
 
-            // Сохраняем новое изображение
-            $imagePath = $request->file('image')->store('events', 'public');
-            $validated['image'] = $imagePath;
-        } elseif ($request->has('remove_image') && $event->image) {
-            Storage::delete('public/' . $event->image);
-            $validated['image'] = null;
+        // Удаление постера если отмечено
+        if ($request->has('remove_poster') && $request->remove_poster) {
+            if ($event->poster && strpos($event->poster, 'images/') === 0) {
+                $oldFilePath = public_path($event->poster);
+                if (file_exists($oldFilePath)) {
+                    unlink($oldFilePath);
+                }
+            }
+            $posterUrl = null;
         }
-        $event->update($validated);
+
+        // Загрузка нового постера
+        if ($request->hasFile('poster_file')) {
+            // Удаляем старый файл если он существует
+
+            $file = $request->file('poster_file');
+            $fileName = time() . '_' . $file->getClientOriginalName();
+            $file->move(public_path('images'), $fileName);
+            $posterUrl = $fileName; // Сохраняем только имя файла
+        }
+
+        // Обновление данных мероприятия
+        $event->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category' => $validated['category'],
+            'start_datetime' => $validated['start_datetime'],
+            'end_datetime' => $validated['end_datetime'],
+            'location' => $validated['location'],
+            'age_restriction' => $validated['age_restriction'] ?? null,
+            'poster' => $posterUrl,
+            'is_free' => $validated['is_free'] ?? 0,
+            'price' => $validated['price'] ?? 0,
+            'is_published' => $validated['is_published'] ?? 0,
+            'is_booking' => $validated['is_booking'] ?? 1,
+            'booking_type' => $validated['booking_type'],
+            'link' => $validated['link'] ?? null,
+        ]);
+
+        // Обновление мест если тип бронирования seated
+        if ($validated['booking_type'] === 'seated') {
+            $this->updateSeats($event, $validated['rows'], $validated['columns']);
+        }
+
         return redirect()->route('organizer.events.index')
             ->with('success', 'Мероприятие успешно обновлено');
     }
+
     public function destroy(Event $event)
     {
         // Проверка прав (если организатор может удалять только свои события)

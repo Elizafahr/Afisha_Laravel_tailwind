@@ -25,7 +25,7 @@ class Event extends Model
         'end_datetime',
         'location',
         'age_restriction',
-        'poster_url',
+        'poster',
         'is_published',
         'is_free',
         'is_featured',
@@ -59,6 +59,10 @@ class Event extends Model
   {
       return $this->tickets()->where('price', 0)->exists();
   }
+  public function isActuallyFree()
+{
+    return $this->is_free || $this->price == 0;
+}
     public function tickets()
     {
         return $this->hasMany(Ticket::class, 'event_id', 'event_id');

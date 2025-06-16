@@ -6,11 +6,11 @@
     <div class="container mx-auto px-4 py-8">
         <h1 class="text-2xl font-bold mb-6">Пользователи</h1>
 
-        @if (session('success'))
+        {{-- @if (session('success'))
             <div class="mb-4 p-4 bg-green-100 text-green-700 rounded">
                 {{ session('success') }}
             </div>
-        @endif
+        @endif --}}
 
         <div class="bg-white rounded-lg shadow overflow-hidden">
             <table class="min-w-full divide-y divide-gray-200">

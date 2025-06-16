@@ -15,15 +15,14 @@
     @endif
 
 
-    <div class="card">
+       <div class="card">
         <div class="card-header">
-            <h1 class="text-2xl font-bold mb-6">Создание мероприятия</h1>
+            <h5>Создание мероприятия</h5>
         </div>
         <div class="card-body">
-
-            <form method="POST" action="{{ route('admin.events.store') }}" enctype="multipart/form-data">
-                @csrf
-                @if (isset($event))
+<form method="POST" action="{{ route('admin.events.store') }}" enctype="multipart/form-data">
+                     @csrf
+                     @if (isset($event))
                     @method('PUT')
                 @endif
 
@@ -62,11 +61,9 @@
                             value="{{ old('age_restriction', $event->age_restriction ?? '') }}" min="0">
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label for="description" class="form-label">Описание</label>
-                    <textarea class="form-control" id="description" name="description" rows="3"
-                    required>{{ old('description', $event->description ?? '') }}</textarea>
+                    <textarea class="form-control" id="description" name="description" rows="3" required>{{ old('description', $event->description ?? '') }}</textarea>
                 </div>
 
                 <div class="row mb-3">
@@ -91,29 +88,32 @@
                             value="{{ old('location', $event->location ?? '') }}" required>
                     </div>
                     <div class="col-md-6">
+                        <label for="age_restriction" class="form-label">Возрастное ограничение</label>
+                        <input type="number" class="form-control" id="age_restriction" name="age_restriction"
+                            value="{{ old('age_restriction', $event->age_restriction ?? '') }}" min="0">
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
                         <label for="poster_url" class="form-label">Ссылка на постер</label>
                         <input type="url" class="form-control" id="poster_url" name="poster_url"
                             value="{{ old('poster_url', $event->poster_url ?? '') }}">
                         <small class="text-muted">Или загрузите файл</small>
                         <input type="file" class="form-control mt-2" id="poster_file" name="poster_file">
                     </div>
-                </div>
-
-                <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="form-check form-switch mt-4 pt-2">
+
+
+
                             <input type="hidden" name="is_free" value="0">
+
                             <input class="form-check-input" type="checkbox" id="is_free" name="is_free" value="1"
                                 @checked(old('is_free', $event->is_free ?? 0) == 1)>
+
                             <label class="form-check-label" for="is_free">Бесплатное мероприятие</label>
                         </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="booking_type" class="form-label">Тип бронирования</label>
-                        <select class="form-select" id="booking_type" name="booking_type" required>
-                            <option value="seated" @selected(old('booking_type', $event->booking_type ?? '') == 'seated')>Места с рассадкой</option>
-                            <option value="general" @selected(old('booking_type', $event->booking_type ?? '') == 'general')>Общий вход</option>
-                        </select>
                     </div>
                 </div>
 
@@ -124,19 +124,25 @@
                         <input type="number" class="form-control" id="price" name="price"
                             value="{{ old('price', $event->price ?? 0) }}" min="0" step="1">
                     </div>
-                </div>
-
-                <div class="row mb-3" id="seating-options"
-                    style="{{ old('booking_type', $event->booking_type ?? '') == 'seated' ? '' : 'display: none;' }}">
                     <div class="col-md-6">
-                        <label for="rows" class="form-label">Количество рядов</label>
-                        <input type="number" class="form-control" id="rows" name="rows"
-                            value="{{ old('rows', $event->rows ?? 10) }}" min="1">
+                        <label for="booking_type" class="form-label">Тип бронирования</label>
+                        <select class="form-select" id="booking_type" name="booking_type" required>
+                            <option value="seated" @selected(old('booking_type', $event->booking_type ?? '') == 'seated')>Места с рассадкой</option>
+                            <option value="general" @selected(old('booking_type', $event->booking_type ?? '') == 'general')>Общий вход</option>
+                        </select>
                     </div>
-                    <div class="col-md-6">
-                        <label for="columns" class="form-label">Количество мест в ряду</label>
-                        <input type="number" class="form-control" id="columns" name="columns"
-                            value="{{ old('columns', $event->columns ?? 20) }}" min="1">
+                    <div class="row mb-3" id="seating-options"
+                        style="{{ old('booking_type', $event->booking_type ?? '') == 'seated' ? '' : 'display: none;' }}">
+                        <div class="col-md-6">
+                            <label for="rows" class="form-label">Количество рядов</label>
+                            <input type="number" class="form-control" id="rows" name="rows"
+                                value="{{ old('rows', $event->rows ?? 10) }}" min="1">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="columns" class="form-label">Количество мест в ряду</label>
+                            <input type="number" class="form-control" id="columns" name="columns"
+                                value="{{ old('columns', $event->columns ?? 20) }}" min="1">
+                        </div>
                     </div>
                 </div>
 
@@ -147,6 +153,7 @@
                             value="{{ old('link', $event->link ?? '') }}">
                     </div>
                     <div class="col-md-6">
+
                         <div class="form-check form-switch mt-4 pt-2">
                             <input class="form-check-input" type="checkbox" id="is_booking" name="is_booking"
                                 value="1" @checked(old('is_booking', $event->is_booking ?? 1) == 1)>
@@ -155,13 +162,14 @@
                     </div>
                 </div>
 
+
                 <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" id="is_published" name="is_published"
                         value="1" @checked(old('is_published', $event->is_published ?? 0) == 1)>
                     <label class="form-check-label" for="is_published">Опубликовать мероприятие</label>
                 </div>
                 <button type="submit" class="btn btn-primary">Сохранить</button>
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Отмена</a>
+                <a href="{{ route('organizer.events.index') }}" class="btn btn-secondary">Отмена</a>
             </form>
         </div>
     </div>

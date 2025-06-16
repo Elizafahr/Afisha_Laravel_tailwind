@@ -33,7 +33,7 @@
         </div>
 
         <div class="flex justify-between items-center">
-            @if (!$event->is_free)
+    @if (!$event->is_free && $event->price > 0)
                 <span class="text-red-600 font-bold">{{ $event->price }} ₽</span>
             @else
                 <span class="text-green-600 font-bold">Бесплатно</span>

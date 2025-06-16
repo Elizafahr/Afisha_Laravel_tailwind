@@ -88,21 +88,12 @@
 
 
                             <input type="hidden" name="is_free" value="0">
-                            {{-- <input type="checkbox" name="is_free" id="is_free" value="1"
-                                @checked(old('is_free', $event->is_free ?? 0) == 1)> --}}
-
-
 
                             <input class="form-check-input" type="checkbox" id="is_free" name="is_free" value="1"
                                 @checked(old('is_free', $event->is_free ?? 0) == 1)>
 
                             <label class="form-check-label" for="is_free">Бесплатное мероприятие</label>
                         </div>
-                        {{-- <div class="form-check form-switch mt-2">
-                        <input class="form-check-input" type="checkbox" id="is_featured" name="is_featured"
-                               {{ old('is_featured', isset($event) ? $event->is_featured : false) ? 'checked' : '' }}>
-                        <label class="form-check-label" for="is_featured">Рекомендуемое мероприятие</label>
-                    </div> --}}
                     </div>
                 </div>
 
