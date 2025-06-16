@@ -93,9 +93,13 @@
                     </div>
 
                     <div>
+                        <div class="form-check">
+    <input type="checkbox" name="remove_poster" id="remove_poster" class="form-check-input">
+    <label for="remove_poster" class="form-check-label">Удалить постер</label>
+</div>
                         <label for="poster_url" class="block text-sm font-medium text-gray-700">Ссылка на постер</label>
                         <input type="url" name="poster_url" id="poster_url"
-                            value="{{ old('poster_url', $event->poster_url) }}"
+                            value=""
                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                         <p class="mt-1 text-sm text-gray-500">Или загрузите файл</p>
                         <input type="file" name="poster_file" id="poster_file"
