@@ -79,26 +79,90 @@ class AdminEventController extends Controller
     }
     public function edit(Event $event)
     {
-        return view('admin.events.edit', compact('event'));
+        $organizers = Organizer::all(); // Или любой другой запрос
+        return view('admin.events.edit', [
+            'event' =>  $event,
+            'organizers' =>  $organizers
+        ]);
     }
     public function update(Request $request, Event $event)
     {
-        $validated = $request->validate([]);
-        $event->update($validated);
-        // Обновление изображения
-        if ($request->hasFile('image')) {
-            $event->clearMediaCollection('events');
-            $event->addMediaFromRequest('image')
-                ->toMediaCollection('events');
+        $validated = $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'required|string',
+            'category' => 'required|in:concert,festival,exhibition,theater',
+            'start_datetime' => 'required|date',
+            'end_datetime' => 'required|date|after:start_datetime',
+            'location' => 'required|string',
+            'age_restriction' => 'nullable|integer|min:0',
+            'poster_url' => 'nullable|url',
+            'poster_file' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'is_free' => 'nullable|in:0,1',
+            'price' => 'nullable|numeric|min:0|required_if:is_free,0',
+            'is_published' => 'nullable|in:0,1',
+            'is_booking' => 'nullable|in:0,1',
+            'booking_type' => 'required|in:seated,general',
+            'rows' => 'nullable|integer|min:1|required_if:booking_type,seated',
+            'columns' => 'nullable|integer|min:1|required_if:booking_type,seated',
+            'link' => 'nullable|url',
+            'organizer_id' => 'required|exists:organizers,organizer_id',
+        ]);
+
+        // Обработка постера
+        $posterUrl = $validated['poster_url'] ?? $event->poster_url;
+
+        if ($request->hasFile('poster_file')) {
+            // Удаляем старый файл, если он был
+            if ($event->poster_url && strpos($event->poster_url, 'storage/') !== false) {
+                $oldFile = str_replace('/storage/', '', $event->poster_url);
+                Storage::disk('public')->delete($oldFile);
+            }
+
+            $path = $request->file('poster_file')->store('event_posters', 'public');
+            $posterUrl = Storage::url($path);
         }
-        return back()->with('success', 'Мероприятие обновлено');
+
+        // Обновляем данные мероприятия
+        $event->update([
+            'title' => $validated['title'],
+            'description' => $validated['description'],
+            'category' => $validated['category'],
+            'start_datetime' => $validated['start_datetime'],
+            'end_datetime' => $validated['end_datetime'],
+            'location' => $validated['location'],
+            'age_restriction' => $validated['age_restriction'] ?? null,
+            'poster_url' => $posterUrl,
+            'is_free' => $validated['is_free'] ?? 0,
+            'price' => $validated['is_free'] ? 0 : ($validated['price'] ?? 0),
+            'is_published' => $validated['is_published'] ?? 0,
+            'is_booking' => $validated['is_booking'] ?? 1,
+            'booking_type' => $validated['booking_type'],
+            'link' => $validated['link'] ?? null,
+            'organizer_id' => $validated['organizer_id'],
+        ]);
+
+        // Если тип бронирования изменился на seated и указаны ряды/колонки
+        if (
+            $validated['booking_type'] === 'seated' &&
+            ($event->wasChanged('booking_type') || $event->wasChanged('rows') || $event->wasChanged('columns'))
+        ) {
+
+            // Удаляем старые места
+            DB::table('Seats')->where('event_id', $event->event_id)->delete();
+
+            // Создаем новые места
+            $this->generateSeats($event, $validated['rows'], $validated['columns']);
+        }
+
+        return redirect()->route('admin.events.index')
+            ->with('success', 'Мероприятие успешно обновлено!');
     }
     public function destroy(Event $event)
     {
         $event->delete();
         return back()->with('success', 'Мероприятие удалено');
     }
-     protected function generateSeats(Event $event, $rows, $columns)
+    protected function generateSeats(Event $event, $rows, $columns)
     {
         $seats = [];
         $zones = ['Партер', 'Балкон', 'Ложа'];
@@ -130,5 +194,4 @@ class AdminEventController extends Controller
         }
         DB::table('Seats')->insert($seats);
     }
-
 }

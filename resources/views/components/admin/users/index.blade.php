@@ -63,16 +63,63 @@
                                     </button>
                                 </form>
                             </td>
-                            <td>
+                            <td class="px-4 py-3 whitespace-nowrap">
                                 @if ($user->role !== 'admin' && !$user->organizer)
-                                    {{-- <a href="{{ route('admin.organizers.create', ['user_id' => $user->id]) }}"
-                                        class="btn btn-sm btn-success">
-                                        <i class="fas fa-user-tie"></i> Сделать организатором
-                                    </a> --}}
+                                    {{-- Кнопка "Сделать организатором" может быть здесь --}}
                                 @elseif($user->organizer)
-                                    <span class="badge bg-primary">
-                                        <i class="fas fa-user-tie"></i> Организатор
-                                    </span>
+                                    <div class="flex flex-col space-y-2">
+                                        <!-- Бейдж организатора -->
+                                        <div class="flex items-center space-x-2">
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <i class="fas fa-user-tie mr-1"></i> Организатор
+                                            </span>
+
+                                            <!-- Статус верификации -->
+                                            <span
+                                                class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium {{ $user->organizer->is_verified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800' }}">
+                                                {{ $user->organizer->is_verified ? '✅ Верифицирован' : '⏳ На проверке' }}
+                                            </span>
+                                        </div>
+
+                                        <!-- Кнопки управления верификацией -->
+                                        @if (!$user->organizer->is_verified)
+                                            <form action="{{ route('admin.organizers.status', $user->organizer) }}"
+                                                method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="status" value="1">
+                                                <button type="submit"
+                                                    class="inline-flex items-center text-sm text-green-600 hover:text-green-900 transition-colors"
+                                                    title="Верифицировать">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                                    </svg>
+                                                    Подтвердить
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form action="{{ route('admin.organizers.status', $user->organizer) }}"
+                                                method="POST" class="inline">
+                                                @csrf
+                                                <input type="hidden" name="status" value="0">
+                                                <button type="submit"
+                                                    class="inline-flex items-center text-sm text-red-600 hover:text-red-900 transition-colors"
+                                                    title="Отменить верификацию">
+                                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor"
+                                                        viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                                            stroke-width="2"
+                                                            d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z">
+                                                        </path>
+                                                    </svg>
+                                                    Отозвать
+                                                </button>
+                                            </form>
+                                        @endif
+                                    </div>
                                 @endif
                             </td>
                         </tr>

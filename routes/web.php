@@ -108,7 +108,7 @@ Route::prefix('admin')->middleware('auth')->controller(AdminController::class)->
     Route::get('/events/create', 'eventsCreate')->name('admin.events.create');
     Route::get('/events/{event}/edit', 'eventsEdit')->name('admin.events.edit');
     Route::put('/events/{event}', 'eventsUpdate')->name('admin.events.update');
-    Route::delete('/events/{event}', 'eventsDestroy')->name('admin.events.destroy');
+Route::delete('/events/{event}', [AdminEventController::class, 'destroy'])->name('admin.events.destroy');
     // Управление бронированиями
     Route::get('/bookings', 'bookingsIndex')->name('admin.bookings.index');
     Route::get('/bookings/{booking}', 'bookingsShow')->name('admin.bookings.show');
@@ -155,3 +155,6 @@ Route::prefix('organizer')->group(function () {
 });
 Route::get('events/{event}/edit', [OrganizerEventController::class, 'edit'])->name('organizer.events.edit');
 Route::put('events/{event}', [OrganizerEventController::class, 'update'])->name('organizer.events.update');
+    Route::post('/organizers/{organizer}/status', [AdminController::class, 'updateOrganizerStatus'])->name('admin.organizers.status');
+Route::patch('/admin/bookings/{booking}/status', [AdminController::class, 'updateBookingStatus'])
+    ->name('admin.bookings.update-status');

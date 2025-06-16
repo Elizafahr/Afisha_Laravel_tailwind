@@ -25,9 +25,9 @@
                             <div>
                                 <h3 class="font-bold text-lg">{{ $organizer->organization_name }}</h3>
                                 @if($organizer->is_verified)
-                                    {{-- <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mt-1">
+                                    <span class="inline-block bg-green-100 text-green-800 text-xs px-2 py-1 rounded mt-1">
                                         <i class="fas fa-check-circle mr-1"></i> Проверенный
-                                    </span> --}}
+                                    </span>
                                 @endif
                             </div>
                         </div>
@@ -59,9 +59,7 @@
                             <span class="text-sm text-gray-500">
                                 {{ $organizer->events_count }} мероприятий
                             </span>
-                            {{-- <a href="{{ route('organizers.show', $organizer) }}" class="text-red-600 hover:text-red-800 font-medium text-sm">
-                                Подробнее <i class="fas fa-arrow-right ml-1"></i>
-                            </a> --}}
+
                         </div>
                     </div>
                 </div>
@@ -83,9 +81,7 @@
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Контактное лицо
                             </th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Телефон
-                            </th>
+
                             <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Мероприятий
                             </th>
@@ -111,9 +107,7 @@
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $organizer->contact_person }}
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {{ $organizer->phone }}
-                                </td>
+
                                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {{ $organizer->events_count }}
                                 </td>

@@ -46,7 +46,7 @@
                         </div>
                     </li>
 
-                    <li class="flex items-start">
+                    {{-- <li class="flex items-start">
                         <i class="fab fa-vk text-gray-500 mt-1 mr-3"></i>
                         <div>
                             <p class="text-gray-600">Социальные сети</p>
@@ -62,7 +62,7 @@
                                 </a>
                             </div>
                         </div>
-                    </li>
+                    </li> --}}
                 </ul>
 
                 <div class="mt-6">
